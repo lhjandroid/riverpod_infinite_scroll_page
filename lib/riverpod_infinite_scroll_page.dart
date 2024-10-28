@@ -19,3 +19,5 @@ export 'package:riverpod_infinite_scroll_page/core/paged_child_builder_delegate.
 export 'package:riverpod_infinite_scroll_page/core/paging_controller.dart';
 export 'package:riverpod_infinite_scroll_page/core/paging_data_controller.dart';
 export 'package:riverpod_infinite_scroll_page/utils/appended_sliver_child_builder_delegate.dart';
+export 'package:riverpod_infinite_scroll_page/widgets/helpers/multi_item_child_builder_delegate.dart';
+export 'package:riverpod_infinite_scroll_page/register/paging_item_register.dart';

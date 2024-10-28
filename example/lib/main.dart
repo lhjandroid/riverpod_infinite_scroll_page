@@ -1,4 +1,5 @@
 import 'package:example/test_page.dart';
+import 'package:example/test_pager_page.dart';
 import 'package:flutter/material.dart';
 import 'package:riverpod_infinite_scroll_page/riverpod_infinite_scroll_page.dart';
 
@@ -52,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
     //   _counter++;
     // });
     Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-      return const TestPage();
+      return const TestPagerPage();
     }));
   }
 

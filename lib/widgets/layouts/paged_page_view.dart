@@ -37,7 +37,7 @@ class PagedPageView<PageKeyType, T extends PagingItem> extends StatelessWidget {
     this.padEnds = true,
     this.shrinkWrapFirstPageIndicators = false,
     this.statusBuilderDelegate,
-    required this.pagingBuilderController,
+    required this.pagingDataController,
     super.key,
   });
 
@@ -97,7 +97,7 @@ class PagedPageView<PageKeyType, T extends PagingItem> extends StatelessWidget {
   final bool shrinkWrapFirstPageIndicators;
 
   // 加载下一页失败时的重试回调
-  final PagingDataController pagingBuilderController;
+  final PagingDataController pagingDataController;
 
   final PagedChildStatusBuilderDelegate? statusBuilderDelegate;
 
@@ -107,7 +107,7 @@ class PagedPageView<PageKeyType, T extends PagingItem> extends StatelessWidget {
         layoutProtocol: PagedLayoutProtocol.box,
         builderDelegate: builderDelegate,
         shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
-        pagingBuilderController: pagingBuilderController,
+        pagingBuilderController: pagingDataController,
         itemListingBuilder: (BuildContext context,
             Widget Function(BuildContext, int) itemWidgetBuilder,
             int itemCount,
@@ -133,7 +133,7 @@ class PagedPageView<PageKeyType, T extends PagingItem> extends StatelessWidget {
                 return PagingStatusWidget(
                   pagingControllerProvider: pagingControllerProvider,
                   builderDelegate: statusBuilderDelegate,
-                  pagingBuilderController: pagingBuilderController,
+                  pagingBuilderController: pagingDataController,
                   layoutProtocol: layoutProtocol,
                   shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
                 );
