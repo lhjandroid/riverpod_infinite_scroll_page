@@ -70,6 +70,7 @@ Implementing Infinite Scrolling
 
 In the main screen under screens/, we use PagedListView to create a scrollable list. When the user reaches the bottom of the list, a request to load more data is triggered automatically.
 
+```
 class _TestPageState extends ConsumerState<TestPage> {
   // Unique key for each page, named after the class here
   final String pageKey = '_TestPageState';
@@ -128,6 +129,7 @@ class _TestPageState extends ConsumerState<TestPage> {
     return Text('item $index name${testItem.name}');
   }
 }
+```
 
 Avoiding Unnecessary Rebuilds
 
