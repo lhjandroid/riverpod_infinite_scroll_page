@@ -1,7 +1,7 @@
 name: riverpod_infinite_scroll_page
 description: "A new Flutter project."
 version: 0.0.1
-homepage:
+homepage: https://github.com/lhjandroid/riverpod_infinite_scroll_page
 
 environment:
   sdk: '>=3.4.3 <4.0.0'
