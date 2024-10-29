@@ -5,6 +5,7 @@ import 'package:riverpod_infinite_scroll_page/core/paging_controller.dart';
 import 'package:riverpod_infinite_scroll_page/core/paging_data_controller.dart';
 import 'package:riverpod_infinite_scroll_page/model/paging_item.dart';
 import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
+import 'package:riverpod_infinite_scroll_page/widgets/helpers/paged_layout_builder.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/layouts/paged_sliver_grid.dart';
 
 /// A [GridView] with pagination capabilities.
@@ -34,12 +35,12 @@ class PagedGridView<PageKeyType, ItemType> extends BoxScrollView {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
-    required this.pagingBuilderController,
+    required this.pagingDataController,
     // Matches [ScrollView.cacheExtent].
     super.cacheExtent,
-    this.showNewPageProgressIndicatorAsGridChild = true,
-    this.showNewPageErrorIndicatorAsGridChild = true,
-    this.showNoMoreItemsIndicatorAsGridChild = true,
+    this.showNewPageProgressIndicatorAsGridChild = false,
+    this.showNewPageErrorIndicatorAsGridChild = false,
+    this.showNoMoreItemsIndicatorAsGridChild = false,
     // Matches [ScrollView.dragStartBehavior].
     super.dragStartBehavior,
     // Matches [ScrollView.keyboardDismissBehavior].
@@ -88,7 +89,7 @@ class PagedGridView<PageKeyType, ItemType> extends BoxScrollView {
   final bool _shrinkWrapFirstPageIndicators;
 
   // 加载下一页失败时的重试回调
-  final PagingDataController pagingBuilderController;
+  final PagingDataController pagingDataController;
   final PagedChildStatusBuilderDelegate? statusBuilderDelegate;
 
   @override
@@ -107,7 +108,8 @@ class PagedGridView<PageKeyType, ItemType> extends BoxScrollView {
         showNoMoreItemsIndicatorAsGridChild:
             showNoMoreItemsIndicatorAsGridChild,
         shrinkWrapFirstPageIndicators: _shrinkWrapFirstPageIndicators,
-        pagingBuilderController: pagingBuilderController,
+        pagingBuilderController: pagingDataController,
         statusBuilderDelegate: statusBuilderDelegate,
+        layoutProtocol: PagedLayoutProtocol.box,
       );
 }

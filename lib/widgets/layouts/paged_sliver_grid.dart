@@ -31,6 +31,7 @@ class PagedSliverGrid<PageKeyType, ItemType> extends StatelessWidget {
     super.key,
     required this.pagingBuilderController,
     this.statusBuilderDelegate,
+    this.layoutProtocol,
   });
 
   /// Matches [PagedLayoutBuilder.pagingController].
@@ -80,10 +81,12 @@ class PagedSliverGrid<PageKeyType, ItemType> extends StatelessWidget {
 
   final PagedChildStatusBuilderDelegate? statusBuilderDelegate;
 
+  final PagedLayoutProtocol? layoutProtocol;
+
   @override
   Widget build(BuildContext context) =>
       PagedLayoutBuilder<PageKeyType, PagingItem>(
-        layoutProtocol: PagedLayoutProtocol.sliver,
+        layoutProtocol: layoutProtocol ?? PagedLayoutProtocol.sliver,
         pagingControllerProvider: pagingControllerProvider,
         builderDelegate: builderDelegate,
         shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
