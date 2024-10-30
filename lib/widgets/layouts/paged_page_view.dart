@@ -1,12 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_infinite_scroll_page/core/paged_child_builder_delegate.dart';
-import 'package:riverpod_infinite_scroll_page/core/paging_controller.dart';
 import 'package:riverpod_infinite_scroll_page/core/paging_data_controller.dart';
 import 'package:riverpod_infinite_scroll_page/model/paging_item.dart';
-import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
 import 'package:riverpod_infinite_scroll_page/utils/appended_sliver_child_builder_delegate.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/paged_layout_builder.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/paging_status_widget.dart';
@@ -18,7 +15,6 @@ import 'package:riverpod_infinite_scroll_page/widgets/helpers/paging_status_widg
 /// Useful for combining another paged widget with a page view with details.
 class PagedPageView<PageKeyType, T extends PagingItem> extends StatelessWidget {
   const PagedPageView({
-    required this.pagingControllerProvider,
     required this.builderDelegate,
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
@@ -41,10 +37,6 @@ class PagedPageView<PageKeyType, T extends PagingItem> extends StatelessWidget {
     this.persistent,
     super.key,
   });
-
-  /// Matches [PagedLayoutBuilder.pagingController].
-  final AutoDisposeFamilyNotifierProvider<PagingController<PageKeyType, T>,
-      PagingState<PageKeyType, T>, PageKeyType> pagingControllerProvider;
 
   /// Matches [PagedLayoutBuilder.builderDelegate].
   final PagedChildBuilderDelegate<T> builderDelegate;
@@ -110,9 +102,7 @@ class PagedPageView<PageKeyType, T extends PagingItem> extends StatelessWidget {
         builderDelegate: builderDelegate,
         shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
         pagingDataController: pagingDataController,
-        itemListingBuilder: (BuildContext context,
-            Widget Function(BuildContext, int) itemWidgetBuilder,
-            int itemCount,
+        itemListingBuilder: (BuildContext context, Widget Function(BuildContext, int) itemWidgetBuilder, int itemCount,
             PagedLayoutProtocol layoutProtocol) {
           return PageView.custom(
             key: key,

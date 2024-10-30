@@ -1,4 +1,3 @@
-import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
 import 'package:riverpod_infinite_scroll_page/riverpod_infinite_scroll_page.dart';
 
 abstract class PagingDataController<T, K extends PagingItem> {

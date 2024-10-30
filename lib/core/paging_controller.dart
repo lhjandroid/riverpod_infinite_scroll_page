@@ -5,6 +5,8 @@ import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
 abstract class PagingDataControllerInterface<PageKeyType, T extends PagingItem> {
   void appendPage(List<T> newItems, PageKeyType? nextPageKey);
 
+  void appendRefreshPage(List<T> newItems, PageKeyType? nextPageKey);
+
   void loadError(dynamic error);
 
   void appendLastPage(List<T> newItems);
@@ -30,6 +32,7 @@ class PagingController<PageKeyType, T extends PagingItem>
   }
 
   /// Append new items to the current list and set the next page key
+  @override
   void appendPage(List<T> newItems, PageKeyType? nextPageKey) {
     final updatedItems = <T>[...(state.itemList ?? []), ...newItems];
     state = state.copyWith(
@@ -45,6 +48,7 @@ class PagingController<PageKeyType, T extends PagingItem>
   /// to the provided error object.
   ///
   /// @param error The error object that occurred while loading data.
+  @override
   void loadError(dynamic error) {
     state = state.copyWith(
       itemList: state.itemList,
@@ -54,6 +58,7 @@ class PagingController<PageKeyType, T extends PagingItem>
   }
 
   /// Append the last page and set the nextPageKey to null
+  @override
   void appendLastPage(List<T> newItems) {
     final updatedItems = <T>[...(state.itemList ?? []), ...newItems];
     state = state.copyWith(
@@ -64,6 +69,7 @@ class PagingController<PageKeyType, T extends PagingItem>
   }
 
   /// Update a specific item in the list at the given index
+  @override
   void updateItemAt(int index, T updatedItem) {
     final items = state.itemList ?? [];
     if (index >= 0 && index < items.length) {
@@ -79,6 +85,7 @@ class PagingController<PageKeyType, T extends PagingItem>
   }
 
   /// Reset the state to the initial state (clear items and reset to the first page key)
+  @override
   void refresh(PageKeyType firstPageKey) {
     state = PagingState<PageKeyType, T>(
       nextPageKey: firstPageKey,
@@ -95,10 +102,20 @@ class PagingController<PageKeyType, T extends PagingItem>
   }
 
   /// Update the state to indicate that data loading is in progress
+  @override
   void onGoing() {
     state = state.copyWith(
       itemList: state.itemList,
       nextPageKey: state.nextPageKey,
+      error: null,
+    );
+  }
+
+  @override
+  void appendRefreshPage(List<T> newItems, PageKeyType? nextPageKey) {
+    state = state.copyWith(
+      itemList: newItems,
+      nextPageKey: nextPageKey,
       error: null,
     );
   }
@@ -118,6 +135,7 @@ class PersistentPagingController<PageKeyType, T extends PagingItem>
   }
 
   /// Append new items to the current list and set the next page key
+  @override
   void appendPage(List<T> newItems, PageKeyType? nextPageKey) {
     final updatedItems = <T>[...(state.itemList ?? []), ...newItems];
     state = state.copyWith(
@@ -133,6 +151,7 @@ class PersistentPagingController<PageKeyType, T extends PagingItem>
   /// to the provided error object.
   ///
   /// @param error The error object that occurred while loading data.
+  @override
   void loadError(dynamic error) {
     state = state.copyWith(
       itemList: state.itemList,
@@ -142,6 +161,7 @@ class PersistentPagingController<PageKeyType, T extends PagingItem>
   }
 
   /// Append the last page and set the nextPageKey to null
+  @override
   void appendLastPage(List<T> newItems) {
     final updatedItems = <T>[...(state.itemList ?? []), ...newItems];
     state = state.copyWith(
@@ -152,6 +172,7 @@ class PersistentPagingController<PageKeyType, T extends PagingItem>
   }
 
   /// Update a specific item in the list at the given index
+  @override
   void updateItemAt(int index, T updatedItem) {
     final items = state.itemList ?? [];
     if (index >= 0 && index < items.length) {
@@ -167,6 +188,7 @@ class PersistentPagingController<PageKeyType, T extends PagingItem>
   }
 
   /// Reset the state to the initial state (clear items and reset to the first page key)
+  @override
   void refresh(PageKeyType firstPageKey) {
     state = PagingState<PageKeyType, T>(
       nextPageKey: firstPageKey,
@@ -183,10 +205,20 @@ class PersistentPagingController<PageKeyType, T extends PagingItem>
   }
 
   /// Update the state to indicate that data loading is in progress
+  @override
   void onGoing() {
     state = state.copyWith(
       itemList: state.itemList,
       nextPageKey: state.nextPageKey,
+      error: null,
+    );
+  }
+
+  @override
+  void appendRefreshPage(List<T> newItems, PageKeyType? nextPageKey) {
+    state = state.copyWith(
+      itemList: newItems,
+      nextPageKey: nextPageKey,
       error: null,
     );
   }
