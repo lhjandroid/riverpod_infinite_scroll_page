@@ -1,9 +1,7 @@
 import 'package:example/test_item.dart';
 import 'package:example/test_page_net_work_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:riverpod_infinite_scroll_page/register/paging_item_register.dart';
 import 'package:riverpod_infinite_scroll_page/riverpod_infinite_scroll_page.dart';
-import 'package:riverpod_infinite_scroll_page/widgets/helpers/multi_item_child_builder_delegate.dart';
 
 class TestPage extends ConsumerStatefulWidget {
   const TestPage({super.key});
@@ -24,10 +22,10 @@ class _TestPageState extends ConsumerState<TestPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: PagedListView<String, PagingItem>(
-        pagingControllerProvider: pagingControllerProvider(pageKey),
         builderDelegate: itemRegister(),
-        pagingDataController: TestPageNetWorkController(),
+        pagingDataController: TestPageNetWorkController(pageKey),
         statusBuilderDelegate: statusBuilder(),
+        persistent: true, // keep data
       ),
       floatingActionButton: FloatingActionButton(onPressed: () {
         final pagingController =
@@ -59,6 +57,7 @@ class _TestPageState extends ConsumerState<TestPage> {
           TestItem: buildTestItem,
         },
       ),
+      persistent: true, //// keep data
     );
   }
 

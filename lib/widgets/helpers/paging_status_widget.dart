@@ -1,39 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_infinite_scroll_page/core/paged_child_builder_delegate.dart';
-import 'package:riverpod_infinite_scroll_page/core/paging_data_controller.dart';
-import 'package:riverpod_infinite_scroll_page/core/paging_controller.dart';
-import 'package:riverpod_infinite_scroll_page/model/paging_item.dart';
-import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
 import 'package:riverpod_infinite_scroll_page/model/paging_status.dart';
+import 'package:riverpod_infinite_scroll_page/riverpod_infinite_scroll_page.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/default_status_indicators/first_page_error_indicator.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/default_status_indicators/first_page_progress_indicator.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/default_status_indicators/new_page_error_indicator.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/default_status_indicators/new_page_progress_indicator.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/default_status_indicators/no_items_found_indicator.dart';
-import 'package:riverpod_infinite_scroll_page/widgets/helpers/paged_layout_builder.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
-class PagingStatusWidget<PageKeyType, T extends PagingItem>
-    extends ConsumerWidget {
+class PagingStatusWidget<PageKeyType, T extends PagingItem> extends ConsumerWidget {
   final PagedChildStatusBuilderDelegate? builderDelegate;
 
-  // 加载下一页失败时的重试回调
-  final PagingDataController pagingBuilderController;
+  // Callback for retrying when a page load fails
+  final PagingDataController pagingDataController;
 
   final PagedLayoutProtocol layoutProtocol;
   final bool shrinkWrapFirstPageIndicators;
 
-  WidgetBuilder? get _noMoreItemsIndicatorBuilder =>
-      builderDelegate?.noMoreItemsIndicatorBuilder ?? (_) => Container();
+  final bool isPersistent;
+
+  WidgetBuilder? get _noMoreItemsIndicatorBuilder => builderDelegate?.noMoreItemsIndicatorBuilder ?? (_) => Container();
 
   WidgetBuilder get _newPageProgressIndicatorBuilder =>
-      builderDelegate?.newPageProgressIndicatorBuilder ??
-      (_) => const NewPageProgressIndicator();
+      builderDelegate?.newPageProgressIndicatorBuilder ?? (_) => const NewPageProgressIndicator();
 
   WidgetBuilder get _firstPageProgressIndicatorBuilder =>
-      builderDelegate?.firstPageProgressIndicatorBuilder ??
-      (_) => const FirstPageProgressIndicator();
+      builderDelegate?.firstPageProgressIndicatorBuilder ?? (_) => const FirstPageProgressIndicator();
 
   bool get _shrinkWrapFirstPageIndicators => shrinkWrapFirstPageIndicators;
 
@@ -46,8 +38,7 @@ class PagingStatusWidget<PageKeyType, T extends PagingItem>
           );
 
   WidgetBuilder get _noItemsFoundIndicatorBuilder =>
-      builderDelegate?.noItemsFoundIndicatorBuilder ??
-      (_) => const NoItemsFoundIndicator();
+      builderDelegate?.noItemsFoundIndicatorBuilder ?? (_) => const NoItemsFoundIndicator();
 
   ErrorIndicatorBuilder get _firstPageErrorIndicatorBuilder =>
       builderDelegate?.firstPageErrorIndicatorBuilder ??
@@ -57,21 +48,23 @@ class PagingStatusWidget<PageKeyType, T extends PagingItem>
         );
       };
 
-  final AutoDisposeFamilyNotifierProvider<PagingController<PageKeyType, T>,
-      PagingState<PageKeyType, T>, PageKeyType> pagingControllerProvider;
   const PagingStatusWidget({
     super.key,
-    required this.pagingControllerProvider,
     required this.builderDelegate,
-    required this.pagingBuilderController,
+    required this.pagingDataController,
     required this.layoutProtocol,
     required this.shrinkWrapFirstPageIndicators,
+    this.isPersistent = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pagingStatus =
-        ref.watch(pagingControllerProvider.select((value) => value.status));
+    PagingStatus pagingStatus;
+    if (isPersistent) {
+      pagingStatus = ref.watch(persistentPagingControllerProvider(pagingDataController.pageKey).select((value) => value.status));
+    } else {
+      pagingStatus = ref.watch(pagingControllerProvider(pagingDataController.pageKey).select((value) => value.status));
+    }
     Widget child;
     switch (pagingStatus) {
       case PagingStatus.loadingFirstPage:
@@ -97,6 +90,7 @@ class PagingStatusWidget<PageKeyType, T extends PagingItem>
           shrinkWrap: _shrinkWrapFirstPageIndicators,
           layoutProtocol: _layoutProtocol,
         );
+        break;
       default:
         child = FirstPageStatusIndicatorBuilder(
           builder: (context) {
@@ -112,14 +106,12 @@ class PagingStatusWidget<PageKeyType, T extends PagingItem>
     if (builderDelegate?.animateTransitions ?? false) {
       if (_layoutProtocol == PagedLayoutProtocol.sliver) {
         return SliverAnimatedSwitcher(
-          duration: builderDelegate?.transitionDuration ??
-              const Duration(milliseconds: 250),
+          duration: builderDelegate?.transitionDuration ?? const Duration(milliseconds: 250),
           child: child,
         );
       } else {
         return AnimatedSwitcher(
-          duration: builderDelegate?.transitionDuration ??
-              const Duration(milliseconds: 250),
+          duration: builderDelegate?.transitionDuration ?? const Duration(milliseconds: 250),
           child: child,
         );
       }
@@ -129,36 +121,31 @@ class PagingStatusWidget<PageKeyType, T extends PagingItem>
   }
 
   /// Retry the last failed request.
-  /// This method updates the state of the PagingController to indicate that a new request is in progress,
-  /// then attempts to retrieve the data for the next page.
-  /// If the data retrieval is successful, it appends the new data to the current paging data list
-  /// and updates the next page key.
-  /// If the data retrieval fails, it updates the state of the PagingController to indicate an error.
-  ///
-  /// @throws Exception If an exception occurs during the retry process, it is caught and passed
-  /// to the loadError method of the PagingController.
   Future<void> retryLastFailedRequest(WidgetRef ref) async {
-    // Update the state of the PagingController to indicate that a new request is in progress
-    ref.read(pagingControllerProvider.notifier).onGoing();
-    // Retrieve the next page key from the PagingController
-    var nextPageKey = ref.read(pagingControllerProvider).nextPageKey;
+    // Indicate that a new request is in progress
+    PagingDataControllerInterface pagingDataControllerInterface = getPagingDataControllerInterface(ref, isPersistent, pagingDataController.pageKey);
+    pagingDataControllerInterface.onGoing();
+
+    var nextPageKey;
+    if (isPersistent) {
+      nextPageKey = ref.read(persistentPagingControllerProvider(pagingDataController.pageKey)).nextPageKey;
+    } else {
+      nextPageKey = ref.read(pagingControllerProvider(pagingDataController.pageKey)).nextPageKey;
+    }
     try {
       // Retry retrieving the data for the next page
-      var data =
-          await pagingBuilderController.retryLastFailedRequest(nextPageKey);
-      // If the data retrieval is successful, append the new data and update the next page key
+      var data = await pagingDataController.retryLastFailedRequest(nextPageKey);
+
+      // Append data if successful, otherwise load error
       if (data.error == null) {
-        ref
-            .read(pagingControllerProvider.notifier)
-            .appendPage(data.itemList as List<T>, data.nextPageKey);
-      }
-      // If the data retrieval fails, update the state of the PagingController to indicate an error
-      else {
-        ref.read(pagingControllerProvider.notifier).loadError(data.error);
+        pagingDataControllerInterface.appendPage(data.itemList as List<T>, data.nextPageKey);
+      } else {
+        pagingDataControllerInterface.loadError(data.error);
       }
     } catch (e) {
-      // If an exception occurs during the retry process, pass it to the loadError method of the PagingController
-      ref.read(pagingControllerProvider.notifier).loadError(e);
+      pagingDataControllerInterface.loadError(e);
     }
   }
+
+  /// Helper to access the correct notifier based on persistence
 }

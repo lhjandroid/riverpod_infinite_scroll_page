@@ -1,11 +1,8 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:riverpod_infinite_scroll_page/core/paged_child_builder_delegate.dart';
-import 'package:riverpod_infinite_scroll_page/core/paging_controller.dart';
 import 'package:riverpod_infinite_scroll_page/core/paging_data_controller.dart';
 import 'package:riverpod_infinite_scroll_page/model/paging_item.dart';
-import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/layouts/paged_sliver_masonry_grid.dart';
 
 /// A [MasonryGridView] with pagination capabilities.
@@ -19,7 +16,6 @@ import 'package:riverpod_infinite_scroll_page/widgets/layouts/paged_sliver_mason
 /// referred package's documentation and examples.
 class PagedMasonryGridView<PageKeyType, ItemType> extends BoxScrollView {
   const PagedMasonryGridView({
-    required this.pagingControllerProvider,
     required this.builderDelegate,
     required this.gridDelegateBuilder,
     this.statusBuilderDelegate,
@@ -63,7 +59,6 @@ class PagedMasonryGridView<PageKeyType, ItemType> extends BoxScrollView {
 
   /// Equivalent to [MasonryGridView.count].
   PagedMasonryGridView.count({
-    required this.pagingControllerProvider,
     required this.builderDelegate,
     required int crossAxisCount,
     this.statusBuilderDelegate,
@@ -110,7 +105,6 @@ class PagedMasonryGridView<PageKeyType, ItemType> extends BoxScrollView {
 
   /// Equivalent to [MasonryGridView.extent].
   PagedMasonryGridView.extent({
-    required this.pagingControllerProvider,
     required this.builderDelegate,
     required double maxCrossAxisExtent,
     this.statusBuilderDelegate,
@@ -154,12 +148,6 @@ class PagedMasonryGridView<PageKeyType, ItemType> extends BoxScrollView {
         super(
           controller: scrollController,
         );
-
-  /// Matches [PagedLayoutBuilder.pagingController].
-  final AutoDisposeFamilyNotifierProvider<
-      PagingController<PageKeyType, PagingItem>,
-      PagingState<PageKeyType, PagingItem>,
-      PageKeyType> pagingControllerProvider;
 
   /// Matches [PagedLayoutBuilder.builderDelegate].
   final PagedChildBuilderDelegate<PagingItem> builderDelegate;
@@ -205,7 +193,6 @@ class PagedMasonryGridView<PageKeyType, ItemType> extends BoxScrollView {
   Widget buildChildLayout(BuildContext context) =>
       PagedSliverMasonryGrid<PageKeyType, PagingItem>(
         builderDelegate: builderDelegate,
-        pagingControllerProvider: pagingControllerProvider,
         gridDelegateBuilder: gridDelegateBuilder,
         mainAxisSpacing: mainAxisSpacing,
         crossAxisSpacing: crossAxisSpacing,

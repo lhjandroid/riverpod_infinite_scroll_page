@@ -5,6 +5,8 @@ import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
 class TestPageNetWorkController extends PagingDataController<String, TestItem> {
   bool isFirst = true;
 
+  TestPageNetWorkController(super.pageKey);
+
   @override
   Future<PagingState> requestData(pageKey) async {
     print('requestData $pageKey');

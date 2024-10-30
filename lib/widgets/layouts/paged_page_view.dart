@@ -38,6 +38,7 @@ class PagedPageView<PageKeyType, T extends PagingItem> extends StatelessWidget {
     this.shrinkWrapFirstPageIndicators = false,
     this.statusBuilderDelegate,
     required this.pagingDataController,
+    this.persistent,
     super.key,
   });
 
@@ -101,13 +102,14 @@ class PagedPageView<PageKeyType, T extends PagingItem> extends StatelessWidget {
 
   final PagedChildStatusBuilderDelegate? statusBuilderDelegate;
 
+  final bool? persistent;
+
   @override
   Widget build(BuildContext context) => PagedLayoutBuilder<PageKeyType, T>(
-        pagingControllerProvider: pagingControllerProvider,
         layoutProtocol: PagedLayoutProtocol.box,
         builderDelegate: builderDelegate,
         shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
-        pagingBuilderController: pagingDataController,
+        pagingDataController: pagingDataController,
         itemListingBuilder: (BuildContext context,
             Widget Function(BuildContext, int) itemWidgetBuilder,
             int itemCount,
@@ -131,11 +133,11 @@ class PagedPageView<PageKeyType, T extends PagingItem> extends StatelessWidget {
               childCount: itemCount,
               appendixBuilder: (context) {
                 return PagingStatusWidget(
-                  pagingControllerProvider: pagingControllerProvider,
                   builderDelegate: statusBuilderDelegate,
-                  pagingBuilderController: pagingDataController,
+                  pagingDataController: pagingDataController,
                   layoutProtocol: layoutProtocol,
                   shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
+                  isPersistent: persistent ?? false,
                 );
               },
               addAutomaticKeepAlives: addAutomaticKeepAlives,
@@ -144,5 +146,6 @@ class PagedPageView<PageKeyType, T extends PagingItem> extends StatelessWidget {
             ),
           );
         },
+        isPersistent: persistent ?? false,
       );
 }

@@ -11,22 +11,37 @@ import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import 'package:tuple/tuple.dart';
 
-//The paging controller provider using AutoDisposeNotifierProviderFamily
 final pagingControllerProvider = AutoDisposeNotifierProviderFamily<
-    PagingController<String, PagingItem>,
-    PagingState<String, PagingItem>,
-    String>(
+    PagingController<dynamic, PagingItem>,
+    PagingState<dynamic, PagingItem>,
+    dynamic>(
   PagingController.new,
 );
 
+final persistentPagingControllerProvider = NotifierProviderFamily<
+    PersistentPagingController<dynamic, PagingItem>,
+    PagingState<dynamic, PagingItem>,
+    dynamic>(
+  PersistentPagingController.new,
+);
+
+// Utility function to select the appropriate provider based on persistence
+ProviderBase<PagingState<dynamic, PagingItem>> getPagingControllerProvider(
+  bool isPersistent,
+  String pageKey,
+) {
+  return isPersistent
+      ? persistentPagingControllerProvider(pageKey)
+      : pagingControllerProvider(pageKey);
+}
+
 // Modify the provider to watch the item at a specific data
 final itemAtProvider =
-    AutoDisposeProvider.family<PagingItem, Tuple2<String, int>>((ref, data) {
-  // Ensure that the correct family argument (page key) is passed
-  final pagingState = ref.watch(
-      pagingControllerProvider(data.item1)); // Assuming 0 is the page key
-
-  // Access the item list directly from the pagingState and return the item at the specified data
+    AutoDisposeProvider.family<PagingItem, Tuple3<dynamic, int, bool>>(
+        (ref, data) {
+  final pagingState = ref.watch(data.item3
+      ? persistentPagingControllerProvider(data.item1)
+      : pagingControllerProvider(data.item1));
   final itemList = pagingState.itemList;
 
   if (itemList != null && data.item2 < itemList.length) {
@@ -35,6 +50,14 @@ final itemAtProvider =
     return PagingItemUnknown();
   }
 });
+
+PagingDataControllerInterface getPagingDataControllerInterface(
+    WidgetRef ref, bool isPersistent, dynamic pageKey) {
+  if (isPersistent) {
+    return ref.read(persistentPagingControllerProvider(pageKey).notifier);
+  }
+  return ref.read(pagingControllerProvider(pageKey).notifier);
+}
 
 typedef ItemListingBuilder = Widget Function(
   BuildContext context,
@@ -46,36 +69,24 @@ typedef ItemListingBuilder = Widget Function(
 /// The Flutter layout protocols supported by [PagedLayoutBuilder].
 enum PagedLayoutProtocol { sliver, box }
 
-/// Facilitates creating infinitely scrolled paged layouts.
-///
-/// Combines a [PagingController] with a
-/// [PagedChildBuilderDelegate] and calls the supplied
-/// [loadingListingBuilder], [errorListingBuilder] or
-/// [completedListingBuilder] for filling in the gaps.
-///
-/// For ordinary cases, this widget shouldn't be used directly. Instead, take a
-/// look at [PagedSliverList], [PagedSliverGrid], [PagedListView],
-/// [PagedGridView], [PagedMasonryGridView], or [PagedPageView].
 class PagedLayoutBuilder<PageKeyType, T extends PagingItem>
     extends ConsumerStatefulWidget {
   const PagedLayoutBuilder({
-    required this.pagingControllerProvider,
     required this.builderDelegate,
     required this.itemListingBuilder,
     required this.layoutProtocol,
     this.shrinkWrapFirstPageIndicators = false,
-    required this.pagingBuilderController,
+    required this.pagingDataController,
+    required this.isPersistent,
     super.key,
   });
 
-  final AutoDisposeFamilyNotifierProvider<PagingController<PageKeyType, T>,
-      PagingState<PageKeyType, T>, PageKeyType> pagingControllerProvider;
   final PagedChildBuilderDelegate<T> builderDelegate;
   final ItemListingBuilder itemListingBuilder;
   final PagedLayoutProtocol layoutProtocol;
   final bool shrinkWrapFirstPageIndicators;
-  // 加载下一页失败时的重试回调
-  final PagingDataController pagingBuilderController;
+  final bool isPersistent;
+  final PagingDataController pagingDataController;
 
   @override
   PagedLayoutBuilderState<PageKeyType, T> createState() =>
@@ -85,46 +96,52 @@ class PagedLayoutBuilder<PageKeyType, T extends PagingItem>
 class PagedLayoutBuilderState<PageKeyType, T extends PagingItem>
     extends ConsumerState<PagedLayoutBuilder<PageKeyType, T>> {
   PagedChildBuilderDelegate<T> get _builderDelegate => widget.builderDelegate;
-
   PagedLayoutProtocol get _layoutProtocol => widget.layoutProtocol;
 
-  /// Retry the last failed request.
-  /// This method updates the state of the PagingController to indicate that a new request is in progress,
-  /// then attempts to retrieve the data for the next page.
-  /// If the data retrieval is successful, it appends the new data to the current paging data list
-  /// and updates the next page key.
-  /// If the data retrieval fails, it updates the state of the PagingController to indicate an error.
-  ///
-  /// @throws Exception If an exception occurs during the retry process, it is caught and passed
-  /// to the loadError method of the PagingController.
-  Future<void> retryLastFailedRequest() async {
-    // Update the state of the PagingController to indicate that a new request is in progress
-    ref.read(widget.pagingControllerProvider.notifier).onGoing();
-    // Retrieve the next page key from the PagingController
-    var nextPageKey = ref.read(widget.pagingControllerProvider).nextPageKey;
-    try {
-      // Retry retrieving the data for the next page
-      var data = await widget.pagingBuilderController
-          .retryLastFailedRequest(nextPageKey);
-      // If the data retrieval is successful, append the new data and update the next page key
-      if (data.error == null) {
-        ref
-            .read(widget.pagingControllerProvider.notifier)
-            .appendPage(data.itemList as List<T>, data.nextPageKey);
-      }
-      // If the data retrieval fails, update the state of the PagingController to indicate an error
-      else {
-        ref
-            .read(widget.pagingControllerProvider.notifier)
-            .loadError(data.error);
-      }
-    } catch (e) {
-      // If an exception occurs during the retry process, pass it to the loadError method of the PagingController
-      ref.read(widget.pagingControllerProvider.notifier).loadError(e);
+  PagingDataController get _pagingBuilderController =>
+      widget.pagingDataController;
+
+  // Helper function to access .notifier based on isPersistent
+  void withNotifier(
+      Function(PagingDataControllerInterface<dynamic, PagingItem> controller)
+          action) {
+    if (widget.isPersistent) {
+      // Use persistent provider directly
+      final notifier = ref.read(persistentPagingControllerProvider(
+              _pagingBuilderController.getPageKey())
+          .notifier);
+      action(notifier);
+    } else {
+      // Use auto-dispose provider directly
+      final notifier = ref.read(
+          pagingControllerProvider(_pagingBuilderController.getPageKey())
+              .notifier);
+      action(notifier);
     }
   }
 
-  /// Avoids duplicate requests on rebuilds.
+  Future<void> retryLastFailedRequest() async {
+    withNotifier((notifier) => notifier.onGoing());
+
+    final provider = getPagingControllerProvider(
+        widget.isPersistent, _pagingBuilderController.getPageKey());
+    var nextPageKey = ref.read(provider).nextPageKey;
+
+    try {
+      var data =
+          await widget.pagingDataController.retryLastFailedRequest(nextPageKey);
+      withNotifier((notifier) {
+        if (data.error == null) {
+          notifier.appendPage(data.itemList as List<T>, data.nextPageKey);
+        } else {
+          notifier.loadError(data.error);
+        }
+      });
+    } catch (e) {
+      withNotifier((notifier) => notifier.loadError(e));
+    }
+  }
+
   bool _hasRequestedNextPage = false;
 
   @override
@@ -134,87 +151,83 @@ class PagedLayoutBuilderState<PageKeyType, T extends PagingItem>
   }
 
   void initData() async {
+    final provider = getPagingControllerProvider(
+        widget.isPersistent, _pagingBuilderController.getPageKey());
     try {
-      var firstKey = ref.read(widget.pagingControllerProvider).nextPageKey;
+      var firstKey = ref.read(provider).nextPageKey;
       var firstPageData =
-          await widget.pagingBuilderController.requestData(firstKey);
-      if (firstPageData.error != null) {
-        ref.read(widget.pagingControllerProvider.notifier).loadError(e);
-      } else {
-        ref
-            .read(widget.pagingControllerProvider.notifier)
-            .appendPage(firstPageData.itemList as List<T>, firstKey);
-      }
-    } on Exception catch (e) {
-      ref.read(widget.pagingControllerProvider.notifier).loadError(e);
+          await widget.pagingDataController.requestData(firstKey);
+
+      withNotifier((notifier) {
+        if (firstPageData.error != null) {
+          notifier.loadError(firstPageData.error);
+        } else {
+          notifier.appendPage(
+              firstPageData.itemList as List<T>, firstPageData.nextPageKey);
+        }
+      });
+    } catch (e) {
+      withNotifier((notifier) => notifier.loadError(e));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Get the AsyncValue from the pagingControllerProvider
-    final itemCount = ref.watch(widget.pagingControllerProvider
-            .select((value) => value.itemList?.length)) ??
-        0;
+    final provider = getPagingControllerProvider(
+        widget.isPersistent, _pagingBuilderController.getPageKey());
+    final itemCount =
+        ref.watch(provider.select((value) => value.itemList?.length)) ?? 0;
 
     Widget child = widget.itemListingBuilder(
       context,
-      (context, index) => _itemBuilder(
-        context,
-        index,
-      ),
+      (context, index) => _itemBuilder(context, index),
       itemCount,
       widget.layoutProtocol,
     );
 
     if (_builderDelegate.animateTransitions) {
-      if (_layoutProtocol == PagedLayoutProtocol.sliver) {
-        return SliverAnimatedSwitcher(
-          duration: _builderDelegate.transitionDuration,
-          child: child,
-        );
-      } else {
-        return AnimatedSwitcher(
-          duration: _builderDelegate.transitionDuration,
-          child: child,
-        );
-      }
+      return _layoutProtocol == PagedLayoutProtocol.sliver
+          ? SliverAnimatedSwitcher(
+              duration: _builderDelegate.transitionDuration, child: child)
+          : AnimatedSwitcher(
+              duration: _builderDelegate.transitionDuration, child: child);
     } else {
       return child;
     }
   }
 
   Widget _itemBuilder(BuildContext context, int index) {
-    final asyncPagingState = ref.read(widget.pagingControllerProvider);
+    final provider = getPagingControllerProvider(
+        widget.isPersistent, _pagingBuilderController.getPageKey());
+    final asyncPagingState = ref.read(provider);
     final itemCount = asyncPagingState.itemList?.length ?? 0;
-    if (!_hasRequestedNextPage) {
-      final newPageRequestTriggerIndex = max(0,
-          itemCount - widget.pagingBuilderController.invisibleItemsThreshold);
 
+    if (!_hasRequestedNextPage) {
+      final newPageRequestTriggerIndex = max(
+          0, itemCount - widget.pagingDataController.invisibleItemsThreshold);
       final isBuildingTriggerIndexItem = index == newPageRequestTriggerIndex;
 
       if (asyncPagingState.nextPageKey != null && isBuildingTriggerIndexItem) {
         _hasRequestedNextPage = true;
-        // Schedules the request for the end of this frame.
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           try {
-            var data = await widget.pagingBuilderController
+            var data = await widget.pagingDataController
                 .requestData(asyncPagingState.nextPageKey);
-            if (data.error != null) {
-              ref.read(widget.pagingControllerProvider.notifier).loadError(e);
-            } else if ((asyncPagingState.itemList?.length ?? 0) > 0 &&
-                data.nextPageKey == null) {
-              ref
-                  .read(widget.pagingControllerProvider.notifier)
-                  .appendLastPage((data.itemList ?? []) as List<T>);
-            } else {
-              ref.read(widget.pagingControllerProvider.notifier).appendPage(
-                  (data.itemList ?? []) as List<T>, data.nextPageKey);
-            }
-          } on Exception catch (e) {
-            ref.read(widget.pagingControllerProvider.notifier).loadError(e);
-          }
 
+            withNotifier((notifier) {
+              if (data.error != null) {
+                notifier.loadError(data.error);
+              } else if ((asyncPagingState.itemList?.length ?? 0) > 0 &&
+                  data.nextPageKey == null) {
+                notifier.appendLastPage((data.itemList ?? []) as List<T>);
+              } else {
+                notifier.appendPage(
+                    (data.itemList ?? []) as List<T>, data.nextPageKey);
+              }
+            });
+          } catch (e) {
+            withNotifier((notifier) => notifier.loadError(e));
+          }
           _hasRequestedNextPage = false;
         });
       }

@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_infinite_scroll_page/core/paged_child_builder_delegate.dart';
-import 'package:riverpod_infinite_scroll_page/core/paging_controller.dart';
 import 'package:riverpod_infinite_scroll_page/core/paging_data_controller.dart';
 import 'package:riverpod_infinite_scroll_page/model/paging_item.dart';
-import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
 import 'package:riverpod_infinite_scroll_page/utils/appended_sliver_child_builder_delegate.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/paged_layout_builder.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/paging_status_widget.dart';
@@ -13,7 +11,6 @@ import 'package:riverpod_infinite_scroll_page/widgets/helpers/paging_status_widg
 class PagedSliverList<PageKeyType, T extends PagingItem>
     extends ConsumerWidget {
   const PagedSliverList({
-    required this.pagingControllerProvider,
     required this.builderDelegate,
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
@@ -26,6 +23,7 @@ class PagedSliverList<PageKeyType, T extends PagingItem>
     required this.pagingBuilderController,
     this.statusBuilderDelegate,
     this.layoutProtocol,
+    this.persistent,
   })  : assert(
           itemExtent == null || prototypeItem == null,
           'You can only pass itemExtent or prototypeItem, not both',
@@ -33,7 +31,6 @@ class PagedSliverList<PageKeyType, T extends PagingItem>
         _separatorBuilder = null;
 
   const PagedSliverList.separated({
-    required this.pagingControllerProvider,
     required this.builderDelegate,
     required IndexedWidgetBuilder separatorBuilder,
     this.addAutomaticKeepAlives = true,
@@ -46,12 +43,9 @@ class PagedSliverList<PageKeyType, T extends PagingItem>
     required this.pagingBuilderController,
     this.layoutProtocol,
     this.statusBuilderDelegate,
+    this.persistent,
   })  : prototypeItem = null,
         _separatorBuilder = separatorBuilder;
-
-  /// Matches [PagedLayoutBuilder.pagingController].
-  final AutoDisposeFamilyNotifierProvider<PagingController<PageKeyType, T>,
-      PagingState<PageKeyType, T>, PageKeyType> pagingControllerProvider;
 
   /// Matches [PagedLayoutBuilder.builderDelegate].
   final PagedChildBuilderDelegate<T> builderDelegate;
@@ -91,14 +85,16 @@ class PagedSliverList<PageKeyType, T extends PagingItem>
 
   final PagedLayoutProtocol? layoutProtocol;
 
+  final bool? persistent;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PagedLayoutBuilder<PageKeyType, T>(
       layoutProtocol: layoutProtocol ?? PagedLayoutProtocol.sliver,
-      pagingControllerProvider: pagingControllerProvider,
       builderDelegate: builderDelegate,
       shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
-      pagingBuilderController: pagingBuilderController,
+      pagingDataController: pagingBuilderController,
+      isPersistent: persistent ?? false,
       itemListingBuilder: (BuildContext context,
               Widget Function(BuildContext, int) itemWidgetBuilder,
               int itemCount,
@@ -157,11 +153,11 @@ class PagedSliverList<PageKeyType, T extends PagingItem>
             childCount: itemCount,
             appendixBuilder: (context) {
               return PagingStatusWidget(
-                pagingControllerProvider: pagingControllerProvider,
                 builderDelegate: statusBuilderDelegate,
-                pagingBuilderController: pagingBuilderController,
+                pagingDataController: pagingBuilderController,
                 layoutProtocol: layoutProtocol,
                 shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
+                isPersistent: persistent ?? false,
               );
             },
             addAutomaticKeepAlives: addAutomaticKeepAlives,
@@ -174,11 +170,11 @@ class PagedSliverList<PageKeyType, T extends PagingItem>
             childCount: itemCount,
             appendixBuilder: (context) {
               return PagingStatusWidget(
-                pagingControllerProvider: pagingControllerProvider,
                 builderDelegate: statusBuilderDelegate,
-                pagingBuilderController: pagingBuilderController,
+                pagingDataController: pagingBuilderController,
                 layoutProtocol: layoutProtocol,
                 shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
+                isPersistent: persistent ?? false,
               );
             },
             separatorBuilder: separatorBuilder,

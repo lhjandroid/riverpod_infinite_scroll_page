@@ -11,6 +11,7 @@ class MultiItemChildBuilderDelegate extends PagedChildBuilderDelegate {
   MultiItemChildBuilderDelegate(
     String pageKey, {
     required this.pagingItemRegister,
+    bool persistent = false,
     super.animateTransitions = false,
   }) : super(
           itemBuilder: (context, index) {
@@ -19,6 +20,7 @@ class MultiItemChildBuilderDelegate extends PagedChildBuilderDelegate {
                 pageKey: pageKey,
                 pagingItemRegister: pagingItemRegister,
                 index: index,
+                persistent: persistent,
               ),
             );
           },
@@ -30,17 +32,20 @@ class ItemWidget extends ConsumerWidget {
   final PagingItemRegister pagingItemRegister;
   final int index;
   final String pageKey;
+  final bool persistent;
 
-  const ItemWidget(
-      {super.key,
-      required this.pageKey,
-      required this.pagingItemRegister,
-      required this.index});
+  const ItemWidget({
+    super.key,
+    required this.pageKey,
+    required this.pagingItemRegister,
+    required this.index,
+    this.persistent = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Use ref.watch to get the specific item at this index
-    var itemData = ref.watch(itemAtProvider(Tuple2(pageKey, index)));
+    var itemData = ref.watch(itemAtProvider(Tuple3(pageKey, index, persistent)));
     final itemType = itemData.runtimeType;
 
     // 判断 itemRegister 是否包含该类型的 builder

@@ -13,7 +13,7 @@ class TestPagerPage extends ConsumerWidget {
       body: PagedPageView(
         pagingControllerProvider: (pagingControllerProvider(pageKey)),
         builderDelegate: itemRegister(),
-        pagingDataController: TestPageNetWorkController(),
+        pagingDataController: TestPageNetWorkController(pageKey),
         scrollDirection: Axis.vertical,
       ),
       floatingActionButton: FloatingActionButton(onPressed: () {
@@ -31,7 +31,7 @@ class TestPagerPage extends ConsumerWidget {
         itemRegister: {
           TestItem: buildTestItem,
         },
-      ),
+      ), persistent: false,
     );
   }
 

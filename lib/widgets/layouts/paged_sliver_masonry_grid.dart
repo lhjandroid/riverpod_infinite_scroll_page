@@ -1,11 +1,8 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:riverpod_infinite_scroll_page/core/paged_child_builder_delegate.dart';
-import 'package:riverpod_infinite_scroll_page/core/paging_controller.dart';
 import 'package:riverpod_infinite_scroll_page/core/paging_data_controller.dart';
 import 'package:riverpod_infinite_scroll_page/model/paging_item.dart';
-import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
 import 'package:riverpod_infinite_scroll_page/utils/appended_sliver_grid.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/paged_layout_builder.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/paging_status_widget.dart';
@@ -25,7 +22,6 @@ typedef SliverSimpleGridDelegateBuilder = SliverSimpleGridDelegate Function(
 /// referred package's documentation and examples.
 class PagedSliverMasonryGrid<PageKeyType, ItemType> extends StatelessWidget {
   const PagedSliverMasonryGrid({
-    required this.pagingControllerProvider,
     required this.builderDelegate,
     required this.gridDelegateBuilder,
     this.mainAxisSpacing = 0,
@@ -40,11 +36,11 @@ class PagedSliverMasonryGrid<PageKeyType, ItemType> extends StatelessWidget {
     required this.pagingBuilderController,
     this.statusBuilderDelegate,
     super.key,
+    this.persistent,
   });
 
   /// Equivalent to [SliverMasonryGrid.count].
   PagedSliverMasonryGrid.count({
-    required this.pagingControllerProvider,
     required this.builderDelegate,
     required int crossAxisCount,
     this.mainAxisSpacing = 0,
@@ -59,6 +55,7 @@ class PagedSliverMasonryGrid<PageKeyType, ItemType> extends StatelessWidget {
     required this.pagingBuilderController,
     this.statusBuilderDelegate,
     super.key,
+    this.persistent,
   }) : gridDelegateBuilder =
             ((childCount) => SliverSimpleGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
@@ -66,7 +63,6 @@ class PagedSliverMasonryGrid<PageKeyType, ItemType> extends StatelessWidget {
 
   /// Equivalent to [SliverMasonryGrid.extent].
   PagedSliverMasonryGrid.extent({
-    required this.pagingControllerProvider,
     required this.builderDelegate,
     required double maxCrossAxisExtent,
     this.mainAxisSpacing = 0,
@@ -81,16 +77,11 @@ class PagedSliverMasonryGrid<PageKeyType, ItemType> extends StatelessWidget {
     required this.pagingBuilderController,
     this.statusBuilderDelegate,
     super.key,
+    this.persistent,
   }) : gridDelegateBuilder =
             ((childCount) => SliverSimpleGridDelegateWithMaxCrossAxisExtent(
                   maxCrossAxisExtent: maxCrossAxisExtent,
                 ));
-
-  /// Matches [PagedLayoutBuilder.pagingController].
-  final AutoDisposeFamilyNotifierProvider<
-      PagingController<PageKeyType, PagingItem>,
-      PagingState<PageKeyType, PagingItem>,
-      PageKeyType> pagingControllerProvider;
 
   /// Matches [PagedLayoutBuilder.builderDelegate].
   final PagedChildBuilderDelegate<PagingItem> builderDelegate;
@@ -131,14 +122,16 @@ class PagedSliverMasonryGrid<PageKeyType, ItemType> extends StatelessWidget {
 
   final PagedChildStatusBuilderDelegate? statusBuilderDelegate;
 
+  final bool? persistent;
+
   @override
   Widget build(BuildContext context) =>
       PagedLayoutBuilder<PageKeyType, PagingItem>(
         layoutProtocol: PagedLayoutProtocol.sliver,
-        pagingControllerProvider: pagingControllerProvider,
         builderDelegate: builderDelegate,
         shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
-        pagingBuilderController: pagingBuilderController,
+        pagingDataController: pagingBuilderController,
+        isPersistent: persistent ?? false,
         itemListingBuilder: (BuildContext context,
             Widget Function(BuildContext, int) itemWidgetBuilder,
             int itemCount,
@@ -154,11 +147,11 @@ class PagedSliverMasonryGrid<PageKeyType, ItemType> extends StatelessWidget {
             itemCount: itemCount,
             appendixBuilder: (context) {
               return PagingStatusWidget(
-                pagingControllerProvider: pagingControllerProvider,
                 builderDelegate: statusBuilderDelegate,
-                pagingBuilderController: pagingBuilderController,
+                pagingDataController: pagingBuilderController,
                 layoutProtocol: layoutProtocol,
                 shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
+                isPersistent: persistent ?? false,
               );
             },
             showAppendixAsGridChild: showNewPageErrorIndicatorAsGridChild,

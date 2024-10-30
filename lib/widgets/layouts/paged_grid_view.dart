@@ -1,10 +1,7 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_infinite_scroll_page/core/paged_child_builder_delegate.dart';
-import 'package:riverpod_infinite_scroll_page/core/paging_controller.dart';
 import 'package:riverpod_infinite_scroll_page/core/paging_data_controller.dart';
 import 'package:riverpod_infinite_scroll_page/model/paging_item.dart';
-import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/paged_layout_builder.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/layouts/paged_sliver_grid.dart';
 
@@ -14,7 +11,6 @@ import 'package:riverpod_infinite_scroll_page/widgets/layouts/paged_sliver_grid.
 /// used without the need for a [CustomScrollView]. Similar to a [GridView].
 class PagedGridView<PageKeyType, ItemType> extends BoxScrollView {
   const PagedGridView({
-    required this.pagingControllerProvider,
     required this.builderDelegate,
     required this.gridDelegate,
     this.statusBuilderDelegate,
@@ -35,6 +31,7 @@ class PagedGridView<PageKeyType, ItemType> extends BoxScrollView {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
+    this.persistent,
     required this.pagingDataController,
     // Matches [ScrollView.cacheExtent].
     super.cacheExtent,
@@ -54,12 +51,6 @@ class PagedGridView<PageKeyType, ItemType> extends BoxScrollView {
         super(
           controller: scrollController,
         );
-
-  /// Matches [PagedLayoutBuilder.pagingController].
-  final AutoDisposeFamilyNotifierProvider<
-      PagingController<PageKeyType, PagingItem>,
-      PagingState<PageKeyType, PagingItem>,
-      PageKeyType> pagingControllerProvider;
 
   /// Matches [PagedLayoutBuilder.builderDelegate].
   final PagedChildBuilderDelegate<PagingItem> builderDelegate;
@@ -91,12 +82,12 @@ class PagedGridView<PageKeyType, ItemType> extends BoxScrollView {
   // 加载下一页失败时的重试回调
   final PagingDataController pagingDataController;
   final PagedChildStatusBuilderDelegate? statusBuilderDelegate;
+  final bool? persistent;
 
   @override
   Widget buildChildLayout(BuildContext context) =>
       PagedSliverGrid<PageKeyType, PagingItem>(
         builderDelegate: builderDelegate,
-        pagingControllerProvider: pagingControllerProvider,
         gridDelegate: gridDelegate,
         addAutomaticKeepAlives: addAutomaticKeepAlives,
         addRepaintBoundaries: addRepaintBoundaries,
@@ -111,5 +102,6 @@ class PagedGridView<PageKeyType, ItemType> extends BoxScrollView {
         pagingBuilderController: pagingDataController,
         statusBuilderDelegate: statusBuilderDelegate,
         layoutProtocol: PagedLayoutProtocol.box,
+        persistent: persistent,
       );
 }

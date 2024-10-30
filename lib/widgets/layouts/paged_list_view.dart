@@ -1,10 +1,7 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_infinite_scroll_page/core/paged_child_builder_delegate.dart';
-import 'package:riverpod_infinite_scroll_page/core/paging_controller.dart';
 import 'package:riverpod_infinite_scroll_page/core/paging_data_controller.dart';
 import 'package:riverpod_infinite_scroll_page/model/paging_item.dart';
-import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/paged_layout_builder.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/layouts/paged_sliver_list.dart';
 
@@ -16,7 +13,6 @@ import 'package:riverpod_infinite_scroll_page/widgets/layouts/paged_sliver_list.
 /// used without the need for a [CustomScrollView]. Similar to a [ListView].
 class PagedListView<PageKeyType, T extends PagingItem> extends BoxScrollView {
   const PagedListView({
-    required this.pagingControllerProvider,
     required this.builderDelegate,
     // Matches [ScrollView.controller].
     ScrollController? scrollController,
@@ -38,6 +34,7 @@ class PagedListView<PageKeyType, T extends PagingItem> extends BoxScrollView {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
+    this.persistent,
     required this.pagingDataController,
     // Matches [ScrollView.cacheExtent]
     super.cacheExtent,
@@ -61,10 +58,10 @@ class PagedListView<PageKeyType, T extends PagingItem> extends BoxScrollView {
         );
 
   const PagedListView.separated({
-    required this.pagingControllerProvider,
     required this.builderDelegate,
     required IndexedWidgetBuilder separatorBuilder,
     this.statusBuilderDelegate,
+    this.persistent,
     // Matches [ScrollView.controller].
     ScrollController? scrollController,
     // Matches [ScrollView.scrollDirection].
@@ -102,10 +99,6 @@ class PagedListView<PageKeyType, T extends PagingItem> extends BoxScrollView {
           controller: scrollController,
         );
 
-  /// Matches [PagedLayoutBuilder.pagingController].
-  final AutoDisposeFamilyNotifierProvider<PagingController<PageKeyType, T>,
-      PagingState<PageKeyType, T>, PageKeyType> pagingControllerProvider;
-
   /// Matches [PagedLayoutBuilder.builderDelegate].
   final PagedChildBuilderDelegate<T> builderDelegate;
 
@@ -139,13 +132,14 @@ class PagedListView<PageKeyType, T extends PagingItem> extends BoxScrollView {
 
   final PagedChildStatusBuilderDelegate? statusBuilderDelegate;
 
+  final bool? persistent;
+
   @override
   Widget buildChildLayout(BuildContext context) {
     final separatorBuilder = _separatorBuilder;
     return separatorBuilder != null
         ? PagedSliverList<PageKeyType, T>.separated(
             builderDelegate: builderDelegate,
-            pagingControllerProvider: pagingControllerProvider,
             separatorBuilder: separatorBuilder,
             addAutomaticKeepAlives: addAutomaticKeepAlives,
             addRepaintBoundaries: addRepaintBoundaries,
@@ -155,10 +149,10 @@ class PagedListView<PageKeyType, T extends PagingItem> extends BoxScrollView {
             pagingBuilderController: pagingDataController,
             statusBuilderDelegate: statusBuilderDelegate,
             layoutProtocol: PagedLayoutProtocol.box,
+            persistent: persistent,
           )
         : PagedSliverList<PageKeyType, T>(
             builderDelegate: builderDelegate,
-            pagingControllerProvider: pagingControllerProvider,
             addAutomaticKeepAlives: addAutomaticKeepAlives,
             addRepaintBoundaries: addRepaintBoundaries,
             addSemanticIndexes: addSemanticIndexes,
@@ -168,6 +162,7 @@ class PagedListView<PageKeyType, T extends PagingItem> extends BoxScrollView {
             pagingBuilderController: pagingDataController,
             statusBuilderDelegate: statusBuilderDelegate,
             layoutProtocol: PagedLayoutProtocol.box,
+            persistent: persistent,
           );
   }
 }

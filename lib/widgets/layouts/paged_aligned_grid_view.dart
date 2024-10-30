@@ -1,11 +1,8 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:riverpod_infinite_scroll_page/core/paged_child_builder_delegate.dart';
-import 'package:riverpod_infinite_scroll_page/core/paging_controller.dart';
 import 'package:riverpod_infinite_scroll_page/core/paging_data_controller.dart';
 import 'package:riverpod_infinite_scroll_page/model/paging_item.dart';
-import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/layouts/paged_sliver_aligned_grid.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/layouts/paged_sliver_masonry_grid.dart';
 
@@ -20,7 +17,6 @@ import 'package:riverpod_infinite_scroll_page/widgets/layouts/paged_sliver_mason
 /// referred package's documentation and examples.
 class PagedAlignedGridView<PageKeyType, ItemType> extends BoxScrollView {
   const PagedAlignedGridView({
-    required this.pagingControllerProvider,
     required this.builderDelegate,
     required this.gridDelegateBuilder,
     this.statusBuilderDelegate,
@@ -56,6 +52,7 @@ class PagedAlignedGridView<PageKeyType, ItemType> extends BoxScrollView {
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
     required this.pagingBuilderController,
+    this.persistent,
     super.key,
   })  : _shrinkWrapFirstPageIndicators = shrinkWrap,
         super(
@@ -64,7 +61,6 @@ class PagedAlignedGridView<PageKeyType, ItemType> extends BoxScrollView {
 
   /// Equivalent to [MasonryGridView.count].
   PagedAlignedGridView.count({
-    required this.pagingControllerProvider,
     this.statusBuilderDelegate,
     required this.builderDelegate,
     required int crossAxisCount,
@@ -99,6 +95,7 @@ class PagedAlignedGridView<PageKeyType, ItemType> extends BoxScrollView {
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
     required this.pagingBuilderController,
+    this.persistent,
     super.key,
   })  : _shrinkWrapFirstPageIndicators = shrinkWrap,
         gridDelegateBuilder =
@@ -111,7 +108,6 @@ class PagedAlignedGridView<PageKeyType, ItemType> extends BoxScrollView {
 
   /// Equivalent to [MasonryGridView.extent].
   PagedAlignedGridView.extent({
-    required this.pagingControllerProvider,
     this.statusBuilderDelegate,
     required this.builderDelegate,
     required double maxCrossAxisExtent,
@@ -145,6 +141,7 @@ class PagedAlignedGridView<PageKeyType, ItemType> extends BoxScrollView {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
+    this.persistent,
     required this.pagingBuilderController,
     super.key,
   })  : _shrinkWrapFirstPageIndicators = shrinkWrap,
@@ -155,12 +152,6 @@ class PagedAlignedGridView<PageKeyType, ItemType> extends BoxScrollView {
         super(
           controller: scrollController,
         );
-
-  /// Matches [PagedLayoutBuilder.pagingController].
-  final AutoDisposeFamilyNotifierProvider<
-      PagingController<PageKeyType, PagingItem>,
-      PagingState<PageKeyType, PagingItem>,
-      PageKeyType> pagingControllerProvider;
 
   /// Matches [PagedLayoutBuilder.builderDelegate].
   final PagedChildBuilderDelegate<PagingItem> builderDelegate;
@@ -202,11 +193,12 @@ class PagedAlignedGridView<PageKeyType, ItemType> extends BoxScrollView {
 
   final PagedChildStatusBuilderDelegate? statusBuilderDelegate;
 
+  final bool? persistent;
+
   @override
   Widget buildChildLayout(BuildContext context) =>
       PagedSliverAlignedGrid<PageKeyType, PagingItem>(
         builderDelegate: builderDelegate,
-        pagingControllerProvider: pagingControllerProvider,
         gridDelegateBuilder: gridDelegateBuilder,
         mainAxisSpacing: mainAxisSpacing,
         crossAxisSpacing: crossAxisSpacing,
@@ -220,7 +212,8 @@ class PagedAlignedGridView<PageKeyType, ItemType> extends BoxScrollView {
         showNoMoreItemsIndicatorAsGridChild:
             showNoMoreItemsIndicatorAsGridChild,
         shrinkWrapFirstPageIndicators: _shrinkWrapFirstPageIndicators,
-        pagingBuilderController: pagingBuilderController,
+        pagingDataController: pagingBuilderController,
         statusBuilderDelegate: statusBuilderDelegate,
+        persistent: persistent,
       );
 }

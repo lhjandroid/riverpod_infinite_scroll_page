@@ -1,26 +1,29 @@
 import 'package:example/test_item.dart';
+import 'package:example/test_page.dart';
 import 'package:example/test_page_net_work_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:riverpod_infinite_scroll_page/riverpod_infinite_scroll_page.dart';
 
 class TestGridPage extends ConsumerWidget {
-  final String pageKey = 'TestGridPage';
+  final dynamic pageKey = 'TestGridPage';
+
   const TestGridPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: PagedGridView<String, PagingItem>(
-        pagingControllerProvider: pagingControllerProvider(pageKey),
         builderDelegate: itemRegister(),
-        pagingDataController: TestPageNetWorkController(),
+        pagingDataController: TestPageNetWorkController(pageKey),
         gridDelegate:
             const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
       ),
       floatingActionButton: FloatingActionButton(onPressed: () {
-        final pagingController =
-            ref.read(pagingControllerProvider(pageKey).notifier);
-        pagingController.updateItemAt(8, TestItem('11111'));
+        // final pagingController = ref.read(pagingControllerProvider(pageKey).notifier);
+        // pagingController.updateItemAt(8, TestItem('11111'));
+
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => const TestPage()));
       }),
     );
   }
@@ -33,6 +36,7 @@ class TestGridPage extends ConsumerWidget {
           TestItem: buildTestItem,
         },
       ),
+      persistent: false,
     );
   }
 
