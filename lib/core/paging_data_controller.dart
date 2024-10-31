@@ -13,6 +13,11 @@ abstract class PagingDataController<T, K extends PagingItem> {
     return requestData(pageKey);
   }
 
+  // list data first page request key
+  T? getFirstPageKey() {
+    return null;
+  }
+
   String getPageKey() {
     return pageKey;
   }

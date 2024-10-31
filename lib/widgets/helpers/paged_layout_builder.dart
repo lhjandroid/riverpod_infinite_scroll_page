@@ -103,7 +103,6 @@ class PagedLayoutBuilderState<PageKeyType, T extends PagingItem>
 
   void initData() async {
     final pageProviderKey = _pagingBuilderController.getPageKey();
-    final provider = pagingControllerProvider(pageProviderKey);
     if (widget.isPersistent) {
       ref.read(pagingControllerProvider(pageProviderKey).notifier).keepAlive();
     }
@@ -116,10 +115,7 @@ class PagedLayoutBuilderState<PageKeyType, T extends PagingItem>
             .read(pagingControllerProvider(pageProviderKey).notifier)
             .arg);
       }
-      var firstKey = ref
-          .read(provider)
-          .nextPageKey;
-      var firstPageData = await widget.pagingDataController.requestData(firstKey);
+      var firstPageData = await widget.pagingDataController.requestData(widget.pagingDataController.getFirstPageKey());
 
       if (firstPageData.error != null) {
         ref
