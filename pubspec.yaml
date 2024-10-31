@@ -1,6 +1,6 @@
 name: riverpod_infinite_scroll_page
 description: "This project is a sample Flutter application demonstrating infinite scrolling pagination using Riverpod for state management. It builds on the infinite_scroll_pagination package and includes optimizations to avoid unnecessary rebuilds. Specifically, it prevents the entire list from being rebuilt when only specific items need updating, resulting in improved performance for large lists."
-version: 0.0.3
+version: 0.0.4
 homepage: https://github.com/lhjandroid/riverpod_infinite_scroll_page
 
 environment:

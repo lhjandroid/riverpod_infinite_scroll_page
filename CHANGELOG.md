@@ -1,3 +1,7 @@
+## 0.0.4
+code optimize
+support setting init data to paging list
+
 ## 0.0.3
 Optimize the code and add a persistence provider.
 Attention! PagedListView must be consistent with MultiItemChildBuilderDelegate persistent persistent
