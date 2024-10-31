@@ -1,3 +1,6 @@
+## 0.05
+fix bugs
+
 ## 0.0.4
 code optimize
 support setting init data to paging list
