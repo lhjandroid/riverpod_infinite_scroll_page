@@ -15,11 +15,11 @@ class TestPageNetWorkController extends PagingDataController<String, TestItem> {
       10,
       (index) => TestItem('Item ${0 * 10 + index + 1}'),
     );
-    if (pageKey == '0 1' && isFirst) {
-      // isFirst = false;
-      return PagingState(
-          itemList: newItems, nextPageKey: pageKey, error: '111');
-    }
+    // if (pageKey == '0 1' && isFirst) {
+    //   // isFirst = false;
+    //   return PagingState(
+    //       itemList: newItems, nextPageKey: pageKey, error: '111');
+    // }
     return PagingState(itemList: newItems, nextPageKey: '0 1');
   }
 }

@@ -8,8 +8,7 @@ import 'package:riverpod_infinite_scroll_page/utils/appended_sliver_child_builde
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/paged_layout_builder.dart';
 import 'package:riverpod_infinite_scroll_page/widgets/helpers/paging_status_widget.dart';
 
-class PagedSliverList<PageKeyType, T extends PagingItem>
-    extends ConsumerWidget {
+class PagedSliverList<PageKeyType, T extends PagingItem> extends ConsumerWidget {
   const PagedSliverList({
     required this.builderDelegate,
     this.addAutomaticKeepAlives = true,
@@ -24,6 +23,7 @@ class PagedSliverList<PageKeyType, T extends PagingItem>
     this.statusBuilderDelegate,
     this.layoutProtocol,
     this.persistent,
+    this.forceUseInitData,
   })  : assert(
           itemExtent == null || prototypeItem == null,
           'You can only pass itemExtent or prototypeItem, not both',
@@ -44,6 +44,7 @@ class PagedSliverList<PageKeyType, T extends PagingItem>
     this.layoutProtocol,
     this.statusBuilderDelegate,
     this.persistent,
+    this.forceUseInitData,
   })  : prototypeItem = null,
         _separatorBuilder = separatorBuilder;
 
@@ -86,6 +87,7 @@ class PagedSliverList<PageKeyType, T extends PagingItem>
   final PagedLayoutProtocol? layoutProtocol;
 
   final bool? persistent;
+  final bool? forceUseInitData;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -95,20 +97,18 @@ class PagedSliverList<PageKeyType, T extends PagingItem>
       shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
       pagingDataController: pagingBuilderController,
       isPersistent: persistent ?? false,
-      itemListingBuilder: (BuildContext context,
-              Widget Function(BuildContext, int) itemWidgetBuilder,
-              int itemCount,
+      itemListingBuilder: (BuildContext context, Widget Function(BuildContext, int) itemWidgetBuilder, int itemCount,
               PagedLayoutProtocol layoutProtocol) =>
           _buildSliverList(
         itemWidgetBuilder,
         itemCount,
         layoutProtocol,
       ),
+      forceUseInitData: forceUseInitData ?? false,
     );
   }
 
-  SliverMultiBoxAdaptorWidget _buildSliverList(
-      IndexedWidgetBuilder itemBuilder, int itemCount, layoutProtocol) {
+  SliverMultiBoxAdaptorWidget _buildSliverList(IndexedWidgetBuilder itemBuilder, int itemCount, layoutProtocol) {
     final delegate = _buildSliverDelegate(
       itemBuilder,
       itemCount,
@@ -117,8 +117,7 @@ class PagedSliverList<PageKeyType, T extends PagingItem>
 
     final itemExtent = this.itemExtent;
 
-    return ((itemExtent == null && prototypeItem == null) ||
-            _separatorBuilder != null)
+    return ((itemExtent == null && prototypeItem == null) || _separatorBuilder != null)
         ? SliverList(
             delegate: delegate,
           )
@@ -143,8 +142,7 @@ class PagedSliverList<PageKeyType, T extends PagingItem>
     return separatorBuilder == null
         ? AppendedSliverChildBuilderDelegate(
             builder: (context, index) {
-              final itemKey =
-                  Key('item_$index'); // Using Key to track individual items
+              final itemKey = Key('item_$index'); // Using Key to track individual items
               return ProviderScope(
                 key: itemKey,
                 child: itemBuilder(context, index),

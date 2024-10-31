@@ -29,6 +29,7 @@ class PagedSliverGrid<PageKeyType, ItemType> extends StatelessWidget {
     this.statusBuilderDelegate,
     this.layoutProtocol,
     this.persistent,
+    this.forceUseInitData,
   });
 
   /// Matches [PagedLayoutBuilder.builderDelegate].
@@ -75,17 +76,15 @@ class PagedSliverGrid<PageKeyType, ItemType> extends StatelessWidget {
   final PagedLayoutProtocol? layoutProtocol;
 
   final bool? persistent;
+  final bool? forceUseInitData;
 
   @override
-  Widget build(BuildContext context) =>
-      PagedLayoutBuilder<PageKeyType, PagingItem>(
+  Widget build(BuildContext context) => PagedLayoutBuilder<PageKeyType, PagingItem>(
         layoutProtocol: layoutProtocol ?? PagedLayoutProtocol.sliver,
         builderDelegate: builderDelegate,
         shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
         pagingDataController: pagingBuilderController,
-        itemListingBuilder: (BuildContext context,
-            Widget Function(BuildContext, int) itemWidgetBuilder,
-            int itemCount,
+        itemListingBuilder: (BuildContext context, Widget Function(BuildContext, int) itemWidgetBuilder, int itemCount,
             PagedLayoutProtocol layoutProtocol) {
           return AppendedSliverGrid(
             sliverGridBuilder: (_, delegate) => SliverGrid(
@@ -110,5 +109,6 @@ class PagedSliverGrid<PageKeyType, ItemType> extends StatelessWidget {
           );
         },
         isPersistent: persistent ?? false,
+        forceUseInitData: forceUseInitData ?? false,
       );
 }

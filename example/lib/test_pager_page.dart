@@ -11,7 +11,6 @@ class TestPagerPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: PagedPageView(
-        pagingControllerProvider: (pagingControllerProvider(pageKey)),
         builderDelegate: itemRegister(),
         pagingDataController: TestPageNetWorkController(pageKey),
         scrollDirection: Axis.vertical,
@@ -31,7 +30,7 @@ class TestPagerPage extends ConsumerWidget {
         itemRegister: {
           TestItem: buildTestItem,
         },
-      ), persistent: false,
+      )
     );
   }
 

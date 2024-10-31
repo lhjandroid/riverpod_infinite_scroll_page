@@ -36,7 +36,6 @@ class TestGridPage extends ConsumerWidget {
           TestItem: buildTestItem,
         },
       ),
-      persistent: false,
     );
   }
 

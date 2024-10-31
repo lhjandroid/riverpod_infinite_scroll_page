@@ -57,7 +57,6 @@ class _TestPageState extends ConsumerState<TestPage> {
           TestItem: buildTestItem,
         },
       ),
-      persistent: true, //// keep data
     );
   }
 

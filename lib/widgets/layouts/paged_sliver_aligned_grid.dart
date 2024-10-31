@@ -34,6 +34,7 @@ class PagedSliverAlignedGrid<PageKeyType, ItemType> extends StatelessWidget {
     this.statusBuilderDelegate,
     super.key,
     this.persistent,
+    this.forceUseInitData,
   });
 
   PagedSliverAlignedGrid.count({
@@ -52,10 +53,10 @@ class PagedSliverAlignedGrid<PageKeyType, ItemType> extends StatelessWidget {
     super.key,
     required this.pagingDataController,
     this.persistent,
-  }) : gridDelegateBuilder =
-            ((childCount) => SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                ));
+    this.forceUseInitData,
+  }) : gridDelegateBuilder = ((childCount) => SliverSimpleGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+            ));
 
   PagedSliverAlignedGrid.extent({
     super.key,
@@ -73,10 +74,10 @@ class PagedSliverAlignedGrid<PageKeyType, ItemType> extends StatelessWidget {
     this.statusBuilderDelegate,
     required this.pagingDataController,
     this.persistent,
-  }) : gridDelegateBuilder =
-            ((childCount) => SliverSimpleGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: maxCrossAxisExtent,
-                ));
+    this.forceUseInitData,
+  }) : gridDelegateBuilder = ((childCount) => SliverSimpleGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: maxCrossAxisExtent,
+            ));
 
   /// Matches [PagedLayoutBuilder.builderDelegate].
   final PagedChildBuilderDelegate<PagingItem> builderDelegate;
@@ -118,17 +119,15 @@ class PagedSliverAlignedGrid<PageKeyType, ItemType> extends StatelessWidget {
   final PagedChildStatusBuilderDelegate? statusBuilderDelegate;
 
   final bool? persistent;
+  final bool? forceUseInitData;
 
   @override
-  Widget build(BuildContext context) =>
-      PagedLayoutBuilder<PageKeyType, PagingItem>(
+  Widget build(BuildContext context) => PagedLayoutBuilder<PageKeyType, PagingItem>(
         layoutProtocol: PagedLayoutProtocol.sliver,
         builderDelegate: builderDelegate,
         shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
         pagingDataController: pagingDataController,
-        itemListingBuilder: (BuildContext context,
-            Widget Function(BuildContext, int) itemWidgetBuilder,
-            int itemCount,
+        itemListingBuilder: (BuildContext context, Widget Function(BuildContext, int) itemWidgetBuilder, int itemCount,
             PagedLayoutProtocol layoutProtocol) {
           return AppendedSliverGrid(
             sliverGridBuilder: (childCount, delegate) => SliverAlignedGrid(
@@ -158,5 +157,6 @@ class PagedSliverAlignedGrid<PageKeyType, ItemType> extends StatelessWidget {
           );
         },
         isPersistent: persistent ?? false,
+        forceUseInitData: forceUseInitData ?? false,
       );
 }

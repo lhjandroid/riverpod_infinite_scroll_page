@@ -37,6 +37,7 @@ class PagedSliverMasonryGrid<PageKeyType, ItemType> extends StatelessWidget {
     this.statusBuilderDelegate,
     super.key,
     this.persistent,
+    this.forceUseInitData,
   });
 
   /// Equivalent to [SliverMasonryGrid.count].
@@ -56,10 +57,10 @@ class PagedSliverMasonryGrid<PageKeyType, ItemType> extends StatelessWidget {
     this.statusBuilderDelegate,
     super.key,
     this.persistent,
-  }) : gridDelegateBuilder =
-            ((childCount) => SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                ));
+    this.forceUseInitData,
+  }) : gridDelegateBuilder = ((childCount) => SliverSimpleGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+            ));
 
   /// Equivalent to [SliverMasonryGrid.extent].
   PagedSliverMasonryGrid.extent({
@@ -78,10 +79,10 @@ class PagedSliverMasonryGrid<PageKeyType, ItemType> extends StatelessWidget {
     this.statusBuilderDelegate,
     super.key,
     this.persistent,
-  }) : gridDelegateBuilder =
-            ((childCount) => SliverSimpleGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: maxCrossAxisExtent,
-                ));
+    this.forceUseInitData,
+  }) : gridDelegateBuilder = ((childCount) => SliverSimpleGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: maxCrossAxisExtent,
+            ));
 
   /// Matches [PagedLayoutBuilder.builderDelegate].
   final PagedChildBuilderDelegate<PagingItem> builderDelegate;
@@ -124,17 +125,16 @@ class PagedSliverMasonryGrid<PageKeyType, ItemType> extends StatelessWidget {
 
   final bool? persistent;
 
+  final bool? forceUseInitData;
+
   @override
-  Widget build(BuildContext context) =>
-      PagedLayoutBuilder<PageKeyType, PagingItem>(
+  Widget build(BuildContext context) => PagedLayoutBuilder<PageKeyType, PagingItem>(
         layoutProtocol: PagedLayoutProtocol.sliver,
         builderDelegate: builderDelegate,
         shrinkWrapFirstPageIndicators: shrinkWrapFirstPageIndicators,
         pagingDataController: pagingBuilderController,
         isPersistent: persistent ?? false,
-        itemListingBuilder: (BuildContext context,
-            Widget Function(BuildContext, int) itemWidgetBuilder,
-            int itemCount,
+        itemListingBuilder: (BuildContext context, Widget Function(BuildContext, int) itemWidgetBuilder, int itemCount,
             PagedLayoutProtocol layoutProtocol) {
           return AppendedSliverGrid(
             sliverGridBuilder: (childCount, delegate) => SliverMasonryGrid(
@@ -160,5 +160,6 @@ class PagedSliverMasonryGrid<PageKeyType, ItemType> extends StatelessWidget {
             addRepaintBoundaries: addRepaintBoundaries,
           );
         },
+        forceUseInitData: forceUseInitData ?? false,
       );
 }

@@ -35,6 +35,7 @@ class PagedPageView<PageKeyType, T extends PagingItem> extends StatelessWidget {
     this.statusBuilderDelegate,
     required this.pagingDataController,
     this.persistent,
+    this.forceUseInitData,
     super.key,
   });
 
@@ -96,6 +97,8 @@ class PagedPageView<PageKeyType, T extends PagingItem> extends StatelessWidget {
 
   final bool? persistent;
 
+  final bool? forceUseInitData;
+
   @override
   Widget build(BuildContext context) => PagedLayoutBuilder<PageKeyType, T>(
         layoutProtocol: PagedLayoutProtocol.box,
@@ -137,5 +140,6 @@ class PagedPageView<PageKeyType, T extends PagingItem> extends StatelessWidget {
           );
         },
         isPersistent: persistent ?? false,
+        forceUseInitData: forceUseInitData ?? false,
       );
 }

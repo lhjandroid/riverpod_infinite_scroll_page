@@ -16,4 +16,8 @@ abstract class PagingDataController<T, K extends PagingItem> {
   String getPageKey() {
     return pageKey;
   }
+
+  List<K>? getInitData(WidgetRef ref) {
+    return null;
+  }
 }
