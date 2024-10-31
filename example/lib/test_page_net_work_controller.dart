@@ -2,7 +2,8 @@ import 'package:example/test_item.dart';
 import 'package:riverpod_infinite_scroll_page/core/paging_data_controller.dart';
 import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
 
-class TestPageNetWorkController extends PagingDataController<String, TestItem> {
+class TestPageNetWorkController
+    extends PagingDataController<String?, TestItem> {
   bool isFirst = true;
 
   TestPageNetWorkController(super.pageKey);

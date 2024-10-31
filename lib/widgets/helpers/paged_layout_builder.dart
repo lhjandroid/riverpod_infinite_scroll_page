@@ -11,13 +11,16 @@ import 'package:riverpod_infinite_scroll_page/model/paging_state.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import 'package:tuple/tuple.dart';
 
-final pagingControllerProvider =
-AutoDisposeNotifierProviderFamily<PagingController<dynamic, PagingItem>, PagingState<dynamic, PagingItem>, dynamic>(
+final pagingControllerProvider = AutoDisposeNotifierProviderFamily<
+    PagingController<dynamic, PagingItem>,
+    PagingState<dynamic, PagingItem>,
+    dynamic>(
   PagingController.new,
 );
 
 // Modify the provider to watch the item at a specific data
-final itemAtProvider = AutoDisposeProvider.family<PagingItem, Tuple2<dynamic, int>>((ref, data) {
+final itemAtProvider =
+    AutoDisposeProvider.family<PagingItem, Tuple2<dynamic, int>>((ref, data) {
   final pagingState = ref.watch(pagingControllerProvider(data.item1));
   final itemList = pagingState.itemList;
 
@@ -29,16 +32,17 @@ final itemAtProvider = AutoDisposeProvider.family<PagingItem, Tuple2<dynamic, in
 });
 
 typedef ItemListingBuilder = Widget Function(
-    BuildContext context,
-    IndexedWidgetBuilder itemWidgetBuilder,
-    int itemCount,
-    PagedLayoutProtocol layoutProtocol,
-    );
+  BuildContext context,
+  IndexedWidgetBuilder itemWidgetBuilder,
+  int itemCount,
+  PagedLayoutProtocol layoutProtocol,
+);
 
 /// The Flutter layout protocols supported by [PagedLayoutBuilder].
 enum PagedLayoutProtocol { sliver, box }
 
-class PagedLayoutBuilder<PageKeyType, T extends PagingItem> extends ConsumerStatefulWidget {
+class PagedLayoutBuilder<PageKeyType, T extends PagingItem>
+    extends ConsumerStatefulWidget {
   const PagedLayoutBuilder({
     required this.builderDelegate,
     required this.itemListingBuilder,
@@ -60,7 +64,8 @@ class PagedLayoutBuilder<PageKeyType, T extends PagingItem> extends ConsumerStat
   final bool forceUseInitData;
 
   @override
-  PagedLayoutBuilderState<PageKeyType, T> createState() => PagedLayoutBuilderState<PageKeyType, T>();
+  PagedLayoutBuilderState<PageKeyType, T> createState() =>
+      PagedLayoutBuilderState<PageKeyType, T>();
 }
 
 class PagedLayoutBuilderState<PageKeyType, T extends PagingItem>
@@ -69,24 +74,27 @@ class PagedLayoutBuilderState<PageKeyType, T extends PagingItem>
 
   PagedLayoutProtocol get _layoutProtocol => widget.layoutProtocol;
 
-  PagingDataController get _pagingBuilderController => widget.pagingDataController;
+  PagingDataController get _pagingBuilderController =>
+      widget.pagingDataController;
 
   Future<void> retryLastFailedRequest() async {
     String pageProviderKey = _pagingBuilderController.getPageKey();
     ref.read(pagingControllerProvider(pageProviderKey).notifier).onGoing();
 
     final provider = pagingControllerProvider(pageProviderKey);
-    var nextPageKey = ref
-        .read(provider)
-        .nextPageKey;
+    var nextPageKey = ref.read(provider).nextPageKey;
 
     try {
-      var data = await widget.pagingDataController.retryLastFailedRequest(nextPageKey);
+      var data =
+          await widget.pagingDataController.retryLastFailedRequest(nextPageKey);
       if (data.error == null) {
-        ref.read(pagingControllerProvider(pageProviderKey).notifier).appendPage(
-            data.itemList as List<T>, data.nextPageKey);
+        ref
+            .read(pagingControllerProvider(pageProviderKey).notifier)
+            .appendPage(data.itemList as List<T>, data.nextPageKey);
       } else {
-        ref.read(pagingControllerProvider(pageProviderKey).notifier).loadError(data.error);
+        ref
+            .read(pagingControllerProvider(pageProviderKey).notifier)
+            .loadError(data.error);
       }
     } catch (e) {
       ref.read(pagingControllerProvider(pageProviderKey).notifier).loadError(e);
@@ -108,23 +116,34 @@ class PagedLayoutBuilderState<PageKeyType, T extends PagingItem>
     }
     try {
       var cacheData = widget.pagingDataController.getInitData(ref);
-      if (cacheData != null && cacheData.isNotEmpty && widget.forceUseInitData) {
+      if (cacheData != null &&
+          cacheData.isNotEmpty &&
+          widget.forceUseInitData) {
         ref
             .read(pagingControllerProvider(pageProviderKey).notifier)
-            .appendRefreshPage(cacheData, ref
-            .read(pagingControllerProvider(pageProviderKey).notifier)
-            .arg);
+            .appendRefreshPage(
+              cacheData,
+              ref.read(pagingControllerProvider(pageProviderKey).notifier).arg,
+            );
       }
-      var firstPageData = await widget.pagingDataController.requestData(widget.pagingDataController.getFirstPageKey());
+      var firstPageData = await widget.pagingDataController
+          .requestData(widget.pagingDataController.getFirstPageKey());
+
+      if (!mounted) return;
 
       if (firstPageData.error != null) {
         ref
-            .read(pagingControllerProvider(_pagingBuilderController.getPageKey()).notifier)
+            .read(
+                pagingControllerProvider(_pagingBuilderController.getPageKey())
+                    .notifier)
             .loadError(firstPageData.error);
       } else {
         ref
-            .read(pagingControllerProvider(_pagingBuilderController.getPageKey()).notifier)
-            .appendRefreshPage(firstPageData.itemList as List<T>, firstPageData.nextPageKey);
+            .read(
+                pagingControllerProvider(_pagingBuilderController.getPageKey())
+                    .notifier)
+            .appendRefreshPage(
+                firstPageData.itemList as List<T>, firstPageData.nextPageKey);
       }
     } catch (e) {
       ref.read(pagingControllerProvider(pageProviderKey).notifier).loadError(e);
@@ -133,52 +152,70 @@ class PagedLayoutBuilderState<PageKeyType, T extends PagingItem>
 
   @override
   Widget build(BuildContext context) {
-    final provider = pagingControllerProvider(_pagingBuilderController.getPageKey());
-    final itemCount = ref.watch(provider.select((value) => value.itemList?.length)) ?? 0;
+    final provider =
+        pagingControllerProvider(_pagingBuilderController.getPageKey());
+    final itemCount =
+        ref.watch(provider.select((value) => value.itemList?.length)) ?? 0;
 
     Widget child = widget.itemListingBuilder(
       context,
-          (context, index) => _itemBuilder(context, index),
+      (context, index) => _itemBuilder(context, index),
       itemCount,
       widget.layoutProtocol,
     );
 
     if (_builderDelegate.animateTransitions) {
       return _layoutProtocol == PagedLayoutProtocol.sliver
-          ? SliverAnimatedSwitcher(duration: _builderDelegate.transitionDuration, child: child)
-          : AnimatedSwitcher(duration: _builderDelegate.transitionDuration, child: child);
+          ? SliverAnimatedSwitcher(
+              duration: _builderDelegate.transitionDuration, child: child)
+          : AnimatedSwitcher(
+              duration: _builderDelegate.transitionDuration, child: child);
     } else {
       return child;
     }
   }
 
   Widget _itemBuilder(BuildContext context, int index) {
+    if (!mounted) {
+      return const SizedBox.shrink();
+    }
     final providerPageKey = _pagingBuilderController.getPageKey();
     final provider = pagingControllerProvider(providerPageKey);
     final asyncPagingState = ref.read(provider);
     final itemCount = asyncPagingState.itemList?.length ?? 0;
 
     if (!_hasRequestedNextPage) {
-      final newPageRequestTriggerIndex = max(0, itemCount - widget.pagingDataController.invisibleItemsThreshold);
+      final newPageRequestTriggerIndex = max(
+          0, itemCount - widget.pagingDataController.invisibleItemsThreshold);
       final isBuildingTriggerIndexItem = index == newPageRequestTriggerIndex;
 
       if (asyncPagingState.nextPageKey != null && isBuildingTriggerIndexItem) {
         _hasRequestedNextPage = true;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           try {
-            var data = await widget.pagingDataController.requestData(asyncPagingState.nextPageKey);
+            var data = await widget.pagingDataController
+                .requestData(asyncPagingState.nextPageKey);
+            if (!mounted) return;
 
             if (data.error != null) {
-              ref.read(pagingControllerProvider(providerPageKey).notifier).loadError(data.error);
-            } else if ((asyncPagingState.itemList?.length ?? 0) > 0 && data.nextPageKey == null) {
-              ref.read(pagingControllerProvider(providerPageKey).notifier).appendLastPage(
-                  (data.itemList ?? []) as List<T>);
+              ref
+                  .read(pagingControllerProvider(providerPageKey).notifier)
+                  .loadError(data.error);
+            } else if ((asyncPagingState.itemList?.length ?? 0) > 0 &&
+                data.nextPageKey == null) {
+              ref
+                  .read(pagingControllerProvider(providerPageKey).notifier)
+                  .appendLastPage((data.itemList ?? []) as List<T>);
             } else {
-              ref.read(pagingControllerProvider(providerPageKey).notifier).appendPage(
-                  (data.itemList ?? []) as List<T>, data.nextPageKey);
+              ref
+                  .read(pagingControllerProvider(providerPageKey).notifier)
+                  .appendPage(
+                      (data.itemList ?? []) as List<T>, data.nextPageKey);
             }
           } catch (e) {
-            ref.read(pagingControllerProvider(providerPageKey).notifier).loadError(e);
+            ref
+                .read(pagingControllerProvider(providerPageKey).notifier)
+                .loadError(e);
           }
           _hasRequestedNextPage = false;
         });
