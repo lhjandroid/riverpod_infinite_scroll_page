@@ -9,6 +9,7 @@ class PagingState<PageKeyType, T extends PagingItem> {
     this.nextPageKey,
     this.itemList,
     this.error,
+    this.isRefreshing,
   });
 
   /// List with all items loaded so far.
@@ -19,17 +20,20 @@ class PagingState<PageKeyType, T extends PagingItem> {
 
   /// The key for the next page to be fetched.
   final PageKeyType? nextPageKey;
+  final bool? isRefreshing;
 
   /// The copyWith method for creating a copy of PagingState with modified properties
   PagingState<PageKeyType, T> copyWith({
     List<T>? itemList,
     dynamic error,
     PageKeyType? nextPageKey,
+    bool? isRefreshing,
   }) {
     return PagingState<PageKeyType, T>(
       itemList: itemList,
       error: error,
       nextPageKey: nextPageKey,
+      isRefreshing: isRefreshing,
     );
   }
 
@@ -43,7 +47,8 @@ class PagingState<PageKeyType, T extends PagingItem> {
         (other is PagingState &&
             other.itemList == itemList &&
             other.error == error &&
-            other.nextPageKey == nextPageKey);
+            other.nextPageKey == nextPageKey &&
+            other.isRefreshing == isRefreshing);
   }
 
   @override
@@ -51,5 +56,6 @@ class PagingState<PageKeyType, T extends PagingItem> {
         itemList.hashCode,
         error.hashCode,
         nextPageKey.hashCode,
+        isRefreshing.hashCode,
       );
 }

@@ -42,7 +42,7 @@ class ItemWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Use ref.watch to get the specific item at this index
     var itemData = ref.watch(itemAtProvider(Tuple2(pageKey, index)));
-    final itemType = itemData.runtimeType;
+    final itemType = itemData.itemType;
 
     // 判断 itemRegister 是否包含该类型的 builder
     if (pagingItemRegister.containsKey(itemType)) {

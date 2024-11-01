@@ -8,6 +8,7 @@ enum PagingStatus {
   ongoing,
   firstPageError,
   subsequentPageError,
+  refreshing,
 }
 
 /// Extension methods for [PagingState] to determine the current status.
@@ -27,6 +28,8 @@ extension PagingStatusExtension on PagingState {
 
   bool get _isOngoing => _isListingUnfinished && !_hasError;
 
+  bool get _isRefreshing => isRefreshing ?? false;
+
   bool get _isCompleted => _hasItems && !_hasNextPage;
 
   bool get _isLoadingFirstPage => _itemCount == null && !_hasError;
@@ -37,6 +40,10 @@ extension PagingStatusExtension on PagingState {
 
   /// The current pagination status.
   PagingStatus get status {
+    if (_isRefreshing) {
+      return PagingStatus.refreshing;
+    }
+
     if (_isOngoing) {
       return PagingStatus.ongoing;
     }

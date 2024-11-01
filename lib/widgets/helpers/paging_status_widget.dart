@@ -60,9 +60,13 @@ class PagingStatusWidget<PageKeyType, T extends PagingItem> extends ConsumerWidg
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     PagingStatus pagingStatus;
-    pagingStatus = ref.watch(pagingControllerProvider(pagingDataController.pageKey).select((value) => value.status));
+    pagingStatus =
+        ref.watch(pagingControllerProvider(pagingDataController.getProviderKey()).select((value) => value.status));
     Widget child;
     switch (pagingStatus) {
+      case PagingStatus.refreshing:
+        child = const SizedBox.shrink();
+        break;
       case PagingStatus.loadingFirstPage:
         child = FirstPageStatusIndicatorBuilder(
           builder: _firstPageProgressIndicatorBuilder,
@@ -120,11 +124,11 @@ class PagingStatusWidget<PageKeyType, T extends PagingItem> extends ConsumerWidg
   Future<void> retryLastFailedRequest(WidgetRef ref) async {
     // Indicate that a new request is in progress
     PagingDataControllerInterface pagingDataControllerInterface =
-        ref.read(pagingControllerProvider(pagingDataController.pageKey).notifier);
-    ref.read(pagingControllerProvider(pagingDataController.pageKey).notifier).onGoing();
+        ref.read(pagingControllerProvider(pagingDataController.getProviderKey()).notifier);
+    ref.read(pagingControllerProvider(pagingDataController.getProviderKey()).notifier).onGoing();
     pagingDataControllerInterface.onGoing();
 
-    var nextPageKey = ref.read(pagingControllerProvider(pagingDataController.pageKey)).nextPageKey;
+    var nextPageKey = ref.read(pagingControllerProvider(pagingDataController.getFirstDataPageKey())).nextPageKey;
     try {
       // Retry retrieving the data for the next page
       var data = await pagingDataController.retryLastFailedRequest(nextPageKey);

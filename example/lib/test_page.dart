@@ -54,7 +54,7 @@ class _TestPageState extends ConsumerState<TestPage> {
       pageKey,
       pagingItemRegister: PagingItemRegister(
         itemRegister: {
-          TestItem: buildTestItem,
+          '1': buildTestItem,
         },
       ),
     );

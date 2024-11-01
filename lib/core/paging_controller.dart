@@ -123,4 +123,13 @@ class PagingController<PageKeyType, T extends PagingItem>
   void keepAlive() {
     ref.keepAlive();
   }
+
+  void pullRefresh() {
+    state = state.copyWith(
+      itemList: state.itemList,
+      nextPageKey: state.nextPageKey,
+      error: null,
+      isRefreshing: true,
+    );
+  }
 }

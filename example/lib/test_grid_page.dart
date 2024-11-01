@@ -33,7 +33,7 @@ class TestGridPage extends ConsumerWidget {
       pageKey,
       pagingItemRegister: PagingItemRegister(
         itemRegister: {
-          TestItem: buildTestItem,
+          '1': buildTestItem,
         },
       ),
     );
