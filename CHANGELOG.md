@@ -1,4 +1,26 @@
 ## 0.05
+Compatible with pull-to-refresh component.
+If using a pull-to-refresh component, please set the provider state before refreshing.
+```dart
+Future<void> refreshPage(WidgetRef ref) async {
+    ref.read(pagingControllerProvider(pagingDataController.getProviderKey()).notifier).pullRefresh(); // call this
+    var firstPageKey = pagingDataController.getFirstDataPageKey();
+    try {
+      var data = await pagingDataController.requestData(firstPageKey);
+      if (data.error == null) {
+        ref
+            .read(pagingControllerProvider(pagingDataController.getProviderKey()).notifier)
+            .appendRefreshPage(data.itemList ?? [], data.nextPageKey);
+      } else {
+        ref.read(pagingControllerProvider(pagingDataController.getProviderKey()).notifier).loadError(data.error);
+      }
+    } on Exception catch (e) {
+      ref.read(pagingControllerProvider(pagingDataController.getProviderKey()).notifier).loadError(e);
+    }
+  }
+```
+
+## 0.05
 fix bugs
 
 ## 0.0.4
