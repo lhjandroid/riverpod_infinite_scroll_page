@@ -1,4 +1,4 @@
-# Building an Optimized Infinite Scroll with Riverpod and Flutter
+# Building an Optimized Infinite Scroll with RiverPod and Flutter
 
 Infinite scrolling is a common design pattern in modern mobile apps, allowing users to continuously load more content as they scroll through a page. This article will introduce a Flutter example that uses [Riverpod](https://pub.dev/packages/riverpod) and the `infinite_scroll_pagination` package to create an efficient and user-friendly infinite scroll pagination feature. We’ll also discuss optimization techniques to avoid unnecessary list rebuilds, enhancing app performance.
 
