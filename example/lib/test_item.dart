@@ -1,6 +1,6 @@
 import 'package:riverpod_infinite_scroll_page/riverpod_infinite_scroll_page.dart';
 
-class TestItem extends PagingItem {
+class TestItem with PagingItem {
   final String name;
 
   TestItem(this.name);

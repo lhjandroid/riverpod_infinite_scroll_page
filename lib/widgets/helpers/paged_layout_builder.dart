@@ -126,7 +126,9 @@ class PagedLayoutBuilderState<PageKeyType, T extends PagingItem>
       },
       fireImmediately: false,
     );
-    initData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      initData();
+    });
   }
 
   void initData() async {

@@ -1,4 +1,7 @@
-## 0.05
+## 0.0.7
+change PagingItem to mixin to avoid extends
+
+## 0.0.6
 Compatible with pull-to-refresh component.
 If using a pull-to-refresh component, please set the provider state before refreshing.
 ```dart

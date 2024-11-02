@@ -1,3 +1,3 @@
-abstract class PagingItem {
+mixin PagingItem {
   String get itemType;
 }
