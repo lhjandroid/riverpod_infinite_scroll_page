@@ -28,20 +28,20 @@ This project uses the following main dependencies:
    git clone https://github.com/lhjandroid/riverpod_infinite_scroll_page.git
    cd riverpod_infinite_scroll_page
 
-	2.	Install dependencies:
+	2.Install dependencies:
 
 flutter pub get
 
 
-	3.	Run the project:
+	3.Run the project:
 
 flutter run
 
 
-	4.	You can also use the package directly:
+	4.You can also use the package directly:
 
 dependencies:
-  riverpod_infinite_scroll_page: ^0.0.1
+  riverpod_infinite_scroll_page: ^0.0.7
 
 
 
@@ -49,10 +49,10 @@ Project Structure
 
 The core project files include:
 
-	•	lib/main.dart: The application entry point.
-	•	lib/models/: Defines data models.
-	•	lib/providers/: Defines Riverpod providers and the pagination state manager.
-	•	lib/widgets/: Defines reusable UI components.
+	•lib/main.dart: The application entry point.
+	•lib/models/: Defines data models.
+	•lib/providers/: Defines Riverpod providers and the pagination state manager.
+	•lib/widgets/: Defines reusable UI components.
 
 Implementing Pagination with Riverpod
 
@@ -60,9 +60,10 @@ In the providers/ directory, we define a pagination provider (paging_provider.da
 
 Key states include:
 
-	•	isLoading: Indicates if the app is currently loading.
-	•	hasError: Indicates if an error occurred during loading.
-	•	hasMoreData: Indicates if more data is available to load.
+	•isLoading: Indicates if the app is currently loading.
+	•hasError: Indicates if an error occurred during loading.
+	•hasMoreData: Indicates if more data is available to load.
+ 	•refreshing
 
 These states allow flexible control over data loading, error handling, and loading additional data.
 
@@ -72,8 +73,7 @@ In the main screen under screens/, we use PagedListView to create a scrollable l
 
 ```
 class _TestPageState extends ConsumerState<TestPage> {
-  // Unique key for each page, named after the class here
-  final String pageKey = '_TestPageState';
+  final String pageKey = '0';
 
   @override
   void initState() {
@@ -84,15 +84,15 @@ class _TestPageState extends ConsumerState<TestPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: PagedListView<String, PagingItem>(
-        pagingControllerProvider: pagingControllerProvider(pageKey), // Paging controller for data handling, globally defined
-        builderDelegate: itemRegister(), // Register list items to allow different item types in one list
-        pagingDataController: TestPageNetWorkController(), // Manages network data for the page
-        statusBuilderDelegate: statusBuilder(), // Handles multi-status view, allowing custom loading, error styles, etc.
+        builderDelegate: itemRegister(),
+        pagingDataController: TestPageNetWorkController(pageKey),
+        statusBuilderDelegate: statusBuilder(),
+        persistent: true, // keep data
       ),
       floatingActionButton: FloatingActionButton(onPressed: () {
         final pagingController =
             ref.read(pagingControllerProvider(pageKey).notifier);
-        pagingController.updateItemAt(8, TestItem('11111')); // Updates specific item without refreshing the whole list
+        pagingController.updateItemAt(8, TestItem('11111'));
       }),
     );
   }
@@ -116,7 +116,7 @@ class _TestPageState extends ConsumerState<TestPage> {
       pageKey,
       pagingItemRegister: PagingItemRegister(
         itemRegister: {
-          TestItem: buildTestItem, // All list items inherit from PagingItem; if the list has different styles, define a build method for each item type
+          '1': buildTestItem,
         },
       ),
     );
@@ -125,7 +125,7 @@ class _TestPageState extends ConsumerState<TestPage> {
   Widget buildTestItem<T extends PagingItem>(
       BuildContext context, T data, int index) {
     print('buildTestItem $index');
-    final testItem = data as TestItem; // Assuming TestItem is the specific type here
+    final testItem = data as TestItem; // 假设 TestItem 是具体的类型
     return Text('item $index name${testItem.name}');
   }
 }
@@ -141,8 +141,8 @@ The project also includes basic error handling. If data loading fails, an error 
 
 Customization
 
-	1.	Replace the data source API in paging_provider.dart with your own.
-	2.	Define your own data models in the models/ directory according to your data structure. Each item should inherit from PagingItem, with the specific data type assigned a type in the model.
+	1.Replace the data source API in paging_provider.dart with your own.
+	2.Define your own data models in the models/ directory according to your data structure. Each item should inherit from PagingItem, with the specific data type assigned a type in the model.
 
 PagedChildStatusBuilderDelegate allows you to define custom layout styles for different status views.
 
